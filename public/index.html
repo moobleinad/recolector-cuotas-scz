@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso Unificado | Control de Cuotas Escolares Santa Cruz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b1120; color: #f8fafc; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased">
+
+  <!-- TOP NAV -->
+  <nav class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-white text-base leading-tight block">Cuotas Escolares con IA</span>
+          <span class="text-xs text-emerald-400 font-medium">Santa Cruz de la Sierra • Bolivia</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="/simulador_ia.html" class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-brands fa-whatsapp text-sm text-emerald-400"></i>
+          <span>Simulador IA</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-5xl mx-auto px-4 py-10 flex-grow w-full flex flex-col items-center justify-center">
+
+    <!-- ACTIVE SESSION BANNER (IF ALREADY LOGGED IN) -->
+    <div id="active-session-box" class="hidden w-full max-w-xl mb-6 bg-slate-900/90 border border-emerald-500/40 rounded-3xl p-5 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg font-bold border border-emerald-500/30">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+          <span class="text-xs text-slate-400 block font-medium">Sesión iniciada como:</span>
+          <span class="font-bold text-white text-base" id="active-user-name">-</span>
+          <div id="active-user-roles" class="flex flex-wrap gap-1 mt-1"></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openRoleModalOrDirect(currentLoggedUser)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow transition">
+          Ingresar al Panel
+        </button>
+        <button onclick="handleLogout()" class="bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 text-xs px-3 py-2 rounded-xl border border-slate-700 transition" title="Cerrar Sesión">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- LOGIN HERO CARD -->
+    <div class="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+      
+      <div class="text-center space-y-2">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <i class="fa-solid fa-shield-halved"></i> Ingreso Seguro de Usuarios
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Acceso Centralizado</h1>
+        <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+          Ingresa con tu correo y contraseña para ver tu panel correspondiente: <strong class="text-slate-200">Padre de Familia</strong>, <strong class="text-slate-200">Directivo</strong> o <strong class="text-slate-200">Super Administrador</strong>.
+        </p>
+      </div>
+
+      <!-- QUICK TEST ACCESS BUTTONS -->
+      <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80 space-y-2">
+        <span class="text-[11px] text-slate-400 font-semibold block text-center">
+          ⚡ Cuentas de demostración (Clic para rellenar rápido):
+        </span>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+          <!-- ADMIN -->
+          <button onclick="fillLogin('admin@cuotas.bo', 'admin123')" class="bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
+            <i class="fa-solid fa-crown text-sm mb-1 text-amber-400"></i>
+            <span class="font-bold">Super Admin</span>
+            <span class="text-[10px] text-slate-400">(Posee los 3 roles)</span>
+          </button>
+          <!-- DIRECTIVO -->
+          <button onclick="fillLogin('carmen@colegiosantacruz.bo', 'carmen123')" class="bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-emerald-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
+            <i class="fa-solid fa-user-tie text-sm mb-1 text-emerald-400"></i>
+            <span class="font-bold">Directivo</span>
+            <span class="text-[10px] text-slate-400">Presidenta 3ro B</span>
+          </button>
+          <!-- PADRE -->
+          <button onclick="fillLogin('padre@cuotas.bo', 'padre123')" class="bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
+            <i class="fa-solid fa-users text-sm mb-1 text-cyan-400"></i>
+            <span class="font-bold">Padre de Familia</span>
+            <span class="text-[10px] text-slate-400">Tutor de Alumno</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form onsubmit="handleUnifiedLogin(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1.5">Correo Electrónico *</label>
+          <div class="relative">
+            <i class="fa-regular fa-envelope absolute left-3.5 top-3.5 text-slate-500"></i>
+            <input type="email" id="login-email" required placeholder="tu-correo@ejemplo.com"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-3.5 py-3 text-white text-xs focus:outline-none focus:border-emerald-500 transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1.5">Contraseña *</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-500"></i>
+            <input type="password" id="login-password" required placeholder="••••••••"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-3.5 py-3 text-white text-xs focus:outline-none focus:border-emerald-500 transition">
+          </div>
+        </div>
+
+        <div id="login-error-msg" class="hidden text-rose-400 text-center font-semibold text-xs py-1"></div>
+
+        <button type="submit" id="btn-login" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black py-3 px-4 rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2 text-sm">
+          <span>Ingresar al Sistema</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </form>
+
+    </div>
+
+    <!-- 3 SYSTEM VALUE PILLARS -->
+    <div class="grid sm:grid-cols-3 gap-4 max-w-3xl w-full mt-10 text-xs">
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 space-y-1.5">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+          <i class="fa-brands fa-whatsapp"></i>
+        </div>
+        <h4 class="font-bold text-white text-sm">Validación con IA</h4>
+        <p class="text-slate-400 leading-relaxed text-[11px]">Los padres envían sus recibos por WhatsApp y la IA verifica el monto, alumno y QR en segundos.</p>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 space-y-1.5">
+        <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm font-bold">
+          <i class="fa-solid fa-users-gear"></i>
+        </div>
+        <h4 class="font-bold text-white text-sm">Multi-Rol Inteligente</h4>
+        <p class="text-slate-400 leading-relaxed text-[11px]">Un usuario puede ser Super Admin, Directivo y Padre al mismo tiempo y alternar con 1 clic.</p>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 space-y-1.5">
+        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">
+          <i class="fa-solid fa-file-pdf"></i>
+        </div>
+        <h4 class="font-bold text-white text-sm">Informes Carta Oficiales</h4>
+        <p class="text-slate-400 leading-relaxed text-[11px]">Genera en 1 clic el balance tamaño carta con firmas para asambleas escolares.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800 bg-slate-900/60 py-4 px-4 text-center text-slate-500 text-xs">
+    Plataforma de Recaudación y Control de Cuotas Escolares • Santa Cruz, Bolivia • 2026
+  </footer>
+
+  <!-- MULTI-ROLE SELECTION MODAL -->
+  <div id="role-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5 animate-fade-in">
+      <div class="text-center space-y-1.5">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center text-xl mx-auto shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-user-check"></i>
+        </div>
+        <h3 class="text-xl font-black text-white" id="modal-welcome-user">¡Bienvenido!</h3>
+        <p class="text-xs text-slate-400">Tu cuenta cuenta con <strong class="text-emerald-400 font-bold" id="modal-roles-count">múltiples roles</strong>. Elige a qué panel deseas acceder:</p>
+      </div>
+
+      <div id="role-modal-options" class="space-y-3">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="pt-2 text-center">
+        <button onclick="closeRoleModal()" class="text-xs text-slate-400 hover:text-white transition">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentLoggedUser = null;
+
+    function fillLogin(email, pwd) {
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-password').value = pwd;
+    }
+
+    async function checkCurrentSession() {
+      const token = localStorage.getItem('cuotas_token');
+      if (!token) return;
+
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.user) {
+          currentLoggedUser = data.user;
+          const box = document.getElementById('active-session-box');
+          box.classList.remove('hidden');
+          document.getElementById('active-user-name').innerText = data.user.name;
+
+          const rolesDiv = document.getElementById('active-user-roles');
+          rolesDiv.innerHTML = '';
+          const roles = data.user.roles || [data.user.role];
+          roles.forEach(r => {
+            const span = document.createElement('span');
+            span.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-slate-800 text-slate-300 border border-slate-700';
+            span.innerText = r === 'SUPER_ADMIN' ? 'Super Admin' : (r === 'DIRECTIVO' ? 'Directivo' : 'Padre de Familia');
+            rolesDiv.appendChild(span);
+          });
+        }
+      } catch (err) {
+        console.error("Session check failed:", err);
+      }
+    }
+
+    async function handleUnifiedLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errorEl = document.getElementById('login-error-msg');
+      const btn = document.getElementById('btn-login');
+
+      errorEl.classList.add('hidden');
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Verificando credenciales...`;
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (data.success && data.token) {
+          localStorage.setItem('cuotas_token', data.token);
+          localStorage.setItem('cuotas_user', JSON.stringify(data.user));
+          currentLoggedUser = data.user;
+
+          // Open multi-role selection or direct redirect
+          openRoleModalOrDirect(data.user);
+        } else {
+          errorEl.innerText = data.error || 'Credenciales no válidas. Revisa correo y contraseña.';
+          errorEl.classList.remove('hidden');
+          btn.innerHTML = `<span>Ingresar al Sistema</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        errorEl.innerText = 'Error de conexión con el servidor.';
+        errorEl.classList.remove('hidden');
+        btn.innerHTML = `<span>Ingresar al Sistema</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+        btn.disabled = false;
+      }
+    }
+
+    function openRoleModalOrDirect(user) {
+      const roles = user.roles || [user.role];
+
+      // If user has exactly 1 role, redirect immediately
+      if (roles.length === 1) {
+        navigateToRole(roles[0]);
+        return;
+      }
+
+      // If user has multiple roles, show interactive modal
+      document.getElementById('modal-welcome-user').innerText = `¡Bienvenido, ${user.name}!`;
+      document.getElementById('modal-roles-count').innerText = `${roles.length} roles`;
+
+      const optionsContainer = document.getElementById('role-modal-options');
+      optionsContainer.innerHTML = '';
+
+      if (roles.includes('SUPER_ADMIN')) {
+        const btn = document.createElement('button');
+        btn.onclick = () => navigateToRole('SUPER_ADMIN');
+        btn.className = 'w-full bg-slate-950 hover:bg-slate-800 border border-amber-500/40 hover:border-amber-400 p-3.5 rounded-2xl text-left transition flex items-center gap-3.5 group shadow';
+        btn.innerHTML = `
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 group-hover:bg-amber-500 group-hover:text-slate-950 flex items-center justify-center text-lg transition font-bold">
+            <i class="fa-solid fa-crown"></i>
+          </div>
+          <div class="flex-grow">
+            <span class="font-bold text-white text-sm block">Super Administrador</span>
+            <span class="text-[11px] text-slate-400">Control maestro de colegios, cursos, usuarios y finanzas</span>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-white transition"></i>
+        `;
+        optionsContainer.appendChild(btn);
+      }
+
+      if (roles.includes('DIRECTIVO')) {
+        const btn = document.createElement('button');
+        btn.onclick = () => navigateToRole('DIRECTIVO');
+        btn.className = 'w-full bg-slate-950 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 p-3.5 rounded-2xl text-left transition flex items-center gap-3.5 group shadow';
+        btn.innerHTML = `
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-slate-950 flex items-center justify-center text-lg transition font-bold">
+            <i class="fa-solid fa-user-tie"></i>
+          </div>
+          <div class="flex-grow">
+            <span class="font-bold text-white text-sm block">Directivo de Curso</span>
+            <span class="text-[11px] text-slate-400">Gestión de cuotas, alumnos, comprobantes e informes PDF</span>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-white transition"></i>
+        `;
+        optionsContainer.appendChild(btn);
+      }
+
+      if (roles.includes('PADRE')) {
+        const btn = document.createElement('button');
+        btn.onclick = () => navigateToRole('PADRE');
+        btn.className = 'w-full bg-slate-950 hover:bg-slate-800 border border-cyan-500/40 hover:border-cyan-400 p-3.5 rounded-2xl text-left transition flex items-center gap-3.5 group shadow';
+        btn.innerHTML = `
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 flex items-center justify-center text-lg transition font-bold">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div class="flex-grow">
+            <span class="font-bold text-white text-sm block">Padre de Familia</span>
+            <span class="text-[11px] text-slate-400">Consulta de cuotas de tus hijos, QR y comprobantes</span>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-white transition"></i>
+        `;
+        optionsContainer.appendChild(btn);
+      }
+
+      document.getElementById('role-modal').classList.remove('hidden');
+    }
+
+    function navigateToRole(role) {
+      if (role === 'SUPER_ADMIN') {
+        window.location.href = '/admin-maestro.html';
+      } else if (role === 'DIRECTIVO') {
+        window.location.href = '/directivo.html';
+      } else if (role === 'PADRE') {
+        window.location.href = '/padre.html';
+      }
+    }
+
+    function closeRoleModal() {
+      document.getElementById('role-modal').classList.add('hidden');
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('cuotas_token');
+      localStorage.removeItem('cuotas_user');
+      window.location.reload();
+    }
+
+    window.addEventListener('DOMContentLoaded', checkCurrentSession);
+  </script>
+</body>
+</html>

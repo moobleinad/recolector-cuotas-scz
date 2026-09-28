@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de la Presidenta de Curso | Control de Cuotas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; color: #f8fafc; }
+  </style>
+</head>
+<body class="min-h-screen pb-16 antialiased">
+
+  <!-- Nav -->
+  <nav class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-slate-950 font-bold">
+          <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <div>
+          <span class="font-bold text-white text-sm leading-tight block">Panel de la Presidenta de Curso</span>
+          <span class="text-[10px] text-slate-400">3ro B de Primaria • Sra. Carmen Rosa Méndez</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="/" class="text-xs text-slate-400 hover:text-white px-2 py-1">
+          <i class="fa-solid fa-eye"></i> Ver Portal de Padres
+        </a>
+        <a href="/simulador_ia.html" target="_blank" class="text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-3 py-1.5 rounded-lg border border-emerald-500/30 flex items-center gap-1 transition">
+          <i class="fa-brands fa-whatsapp"></i> Probar Chat IA
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 pt-6 space-y-6">
+
+    <!-- KPI CARDS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-lg space-y-1">
+        <span class="text-xs text-slate-400 font-medium">Recaudado</span>
+        <div class="text-2xl font-extrabold text-emerald-400" id="stat-collected">0 Bs.</div>
+        <span class="text-[10px] text-slate-500" id="stat-target">Meta: 500 Bs.</span>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-lg space-y-1">
+        <span class="text-xs text-slate-400 font-medium">Alumnos al Día</span>
+        <div class="text-2xl font-extrabold text-white" id="stat-paid">0</div>
+        <span class="text-[10px] text-emerald-400" id="stat-percent">0% completado</span>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-lg space-y-1">
+        <span class="text-xs text-slate-400 font-medium">Alumnos Pendientes</span>
+        <div class="text-2xl font-extrabold text-rose-400" id="stat-pending">0</div>
+        <span class="text-[10px] text-slate-500">Faltan por pagar</span>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-lg space-y-1">
+        <span class="text-xs text-slate-400 font-medium">Monto por Alumno</span>
+        <div class="text-2xl font-extrabold text-amber-400" id="stat-quota">20 Bs.</div>
+        <span class="text-[10px] text-slate-500">Cuota fija</span>
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS BAR -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-bullhorn text-amber-400"></i> Comunicar al Grupo de WhatsApp de Padres
+        </h2>
+        <p class="text-xs text-slate-400">Genera con 1 clic el reporte con emojis listo para pegar en el chat del curso.</p>
+      </div>
+
+      <button onclick="copyWhatsAppReport()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-xs transition">
+        <i class="fa-solid fa-copy"></i>
+        <span>Copiar Reporte para WhatsApp</span>
+      </button>
+    </div>
+
+    <!-- STUDENT ROSTER MANAGEMENT -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div>
+          <h2 class="text-base font-bold text-white">Planilla de Control y Cobro</h2>
+          <p class="text-xs text-slate-400">La IA marca automáticamente los pagos por QR. También puedes marcar pagos en efectivo recibidos en mano.</p>
+        </div>
+        <input type="text" id="admin-search" oninput="renderTable()" placeholder="Buscar alumno..."
+          class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white w-48 sm:w-60 focus:outline-none focus:border-emerald-500">
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="py-3 px-3 w-10 text-center">#</th>
+              <th class="py-3 px-3">Alumno</th>
+              <th class="py-3 px-3 text-center">Estado</th>
+              <th class="py-3 px-3">Fecha de Pago</th>
+              <th class="py-3 px-3">Método / Ref.</th>
+              <th class="py-3 px-3 text-center">Acción Manual</th>
+            </tr>
+          </thead>
+          <tbody id="admin-tbody" class="divide-y divide-slate-800/80">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let studentsList = [];
+
+    async function loadAdminData() {
+      try {
+        const res = await fetch('/api/activity');
+        const data = await res.json();
+
+        document.getElementById('stat-collected').innerText = `${data.metrics.totalCollected} Bs.`;
+        document.getElementById('stat-target').innerText = `Meta: ${data.metrics.targetAmount} Bs.`;
+        document.getElementById('stat-paid').innerText = `${data.metrics.paidStudents} / ${data.metrics.totalStudents}`;
+        document.getElementById('stat-percent').innerText = `${data.metrics.progressPercent}% completado`;
+        document.getElementById('stat-pending').innerText = data.metrics.pendingStudents;
+        document.getElementById('stat-quota').innerText = `${data.activity.amount_bob} Bs.`;
+
+        studentsList = data.students;
+        renderTable();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderTable() {
+      const q = document.getElementById('admin-search').value.toLowerCase().trim();
+      const tbody = document.getElementById('admin-tbody');
+      tbody.innerHTML = '';
+
+      const filtered = studentsList.filter(s => s.full_name.toLowerCase().includes(q));
+
+      filtered.forEach((s, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/40 transition";
+
+        let statusBadge = '';
+        let actionBtn = '';
+
+        if (s.status === 'PAGADO') {
+          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PAGADO</span>`;
+          actionBtn = `<button onclick="togglePayment(${s.id})" class="text-[11px] text-slate-400 hover:text-rose-400 p-1 transition" title="Marcar como pendiente">
+            <i class="fa-solid fa-rotate-left"></i> Desmarcar
+          </button>`;
+        } else {
+          statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">PENDIENTE</span>`;
+          actionBtn = `<button onclick="togglePayment(${s.id})" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">
+            💵 Pagó en Efectivo
+          </button>`;
+        }
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 text-center text-slate-500 font-mono">${idx + 1}</td>
+          <td class="py-3 px-3 font-semibold text-white">${s.full_name}</td>
+          <td class="py-3 px-3 text-center">${statusBadge}</td>
+          <td class="py-3 px-3 text-slate-300">${s.paid_at || '-'}</td>
+          <td class="py-3 px-3 font-mono text-xs text-slate-400">${s.ref_number || s.payment_method || '-'}</td>
+          <td class="py-3 px-3 text-center">${actionBtn}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function togglePayment(studentId) {
+      try {
+        const res = await fetch('/api/manual-pay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ student_id: studentId, method: 'EFECTIVO' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadAdminData();
+        }
+      } catch (err) {
+        alert("Error al actualizar pago.");
+      }
+    }
+
+    async function copyWhatsAppReport() {
+      try {
+        const res = await fetch('/api/whatsapp-report');
+        const data = await res.json();
+        await navigator.clipboard.writeText(data.report);
+        alert("¡Reporte copiado al portapapeles! Ya puedes pegarlo en el grupo de WhatsApp del curso.");
+      } catch (e) {
+        alert("No se pudo copiar automáticamente. Intenta de nuevo.");
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadAdminData);
+    setInterval(loadAdminData, 4000);
+  </script>
+</body>
+</html>

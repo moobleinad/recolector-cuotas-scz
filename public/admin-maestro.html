@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Maestro Super Admin | Cuotas Escolares Santa Cruz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b1120; color: #f8fafc; }
+    .kpi-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+    .kpi-card:hover { transform: translateY(-3px); border-color: #10b981; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15); }
+    .highlight-target { animation: pulseTarget 1.5s cubic-bezier(0.4, 0, 0.6, 1); }
+    @keyframes pulseTarget {
+      0%, 100% { border-color: rgba(148, 163, 184, 0.2); }
+      50% { border-color: #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-16 antialiased">
+
+  <!-- Nav -->
+  <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-extrabold text-base shadow-lg shadow-amber-500/20">
+          <i class="fa-solid fa-crown"></i>
+        </div>
+        <div>
+          <span class="font-bold text-white text-sm leading-tight block">Panel Super Administrador</span>
+          <span class="text-[11px] text-amber-400 font-semibold" id="admin-user-name">Daniel Simons • Control Maestro</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button onclick="openRosterModal()" class="text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-users-gear"></i> Lista de Alumnos
+        </button>
+        <div id="role-switch-admin" class="flex items-center gap-1.5">
+          <a href="/directivo.html" class="text-xs bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 transition font-semibold">
+            <i class="fa-solid fa-user-tie text-[10px]"></i> <span class="hidden sm:inline">Vista Directivo</span>
+          </a>
+          <a href="/padre.html" class="text-xs bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 transition font-semibold">
+            <i class="fa-solid fa-users text-[10px]"></i> <span class="hidden sm:inline">Vista Padre</span>
+          </a>
+        </div>
+        <a href="/" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-eye text-cyan-400"></i> <span class="hidden sm:inline">Portal</span>
+        </a>
+        <button onclick="handleLogout()" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 px-3 py-1.5 rounded-xl border border-rose-500/30 flex items-center gap-1 transition">
+          <i class="fa-solid fa-right-from-bracket"></i> Salir
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 pt-6 space-y-6">
+
+    <!-- CLICKABLE KPI CARDS (6 CARDS) -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      
+      <!-- CARD 1: COLEGIOS -->
+      <div onclick="scrollToSection('card-colegios')" class="kpi-card bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold">
+          <span>Colegios</span>
+          <i class="fa-solid fa-school text-emerald-400 text-xs"></i>
+        </div>
+        <div class="text-2xl font-extrabold text-white" id="stat-schools">0</div>
+        <span class="text-[10px] text-slate-500 flex items-center gap-1">
+          <i class="fa-solid fa-arrow-down text-[9px]"></i> Ver instituciones
+        </span>
+      </div>
+
+      <!-- CARD 2: CURSOS -->
+      <div onclick="scrollToSection('card-cursos')" class="kpi-card bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold">
+          <span>Cursos Activos</span>
+          <i class="fa-solid fa-graduation-cap text-cyan-400 text-xs"></i>
+        </div>
+        <div class="text-2xl font-extrabold text-cyan-400" id="stat-courses">0</div>
+        <span class="text-[10px] text-slate-500 flex items-center gap-1">
+          <i class="fa-solid fa-arrow-down text-[9px]"></i> Ver enlaces públicos
+        </span>
+      </div>
+
+      <!-- CARD 3: DIRECTIVOS -->
+      <div onclick="switchTab('users')" class="kpi-card bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold">
+          <span>Directivos</span>
+          <i class="fa-solid fa-user-tie text-purple-400 text-xs"></i>
+        </div>
+        <div class="text-2xl font-extrabold text-purple-400" id="stat-users">0</div>
+        <span class="text-[10px] text-slate-500 flex items-center gap-1">
+          <i class="fa-solid fa-arrow-down text-[9px]"></i> Ver presidentas
+        </span>
+      </div>
+
+      <!-- CARD 4: ACTIVIDADES & CUOTAS (NUEVO RECUADRO) -->
+      <div onclick="scrollToSection('card-actividades')" class="kpi-card bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold">
+          <span>Actividades</span>
+          <i class="fa-solid fa-layer-group text-blue-400 text-xs"></i>
+        </div>
+        <div class="text-2xl font-extrabold text-blue-400" id="stat-activities">0</div>
+        <span class="text-[10px] text-emerald-400 font-medium" id="stat-activities-sub">0 activas</span>
+      </div>
+
+      <!-- CARD 5: TOTAL ALUMNOS -->
+      <div onclick="openRosterModal()" class="kpi-card bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold">
+          <span>Alumnos</span>
+          <i class="fa-solid fa-users text-emerald-400 text-xs"></i>
+        </div>
+        <div class="text-2xl font-extrabold text-emerald-400" id="stat-students">0</div>
+        <span class="text-[10px] text-slate-500 flex items-center gap-1">
+          <i class="fa-solid fa-pen-to-square text-[9px]"></i> Editar nóminas
+        </span>
+      </div>
+
+      <!-- CARD 6: TOTAL RECAUDADO -->
+      <div onclick="switchTab('summary')" class="kpi-card bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold">
+          <span>Recaudado</span>
+          <i class="fa-solid fa-sack-dollar text-amber-400 text-xs"></i>
+        </div>
+        <div class="text-2xl font-extrabold text-amber-400" id="stat-revenue">0 Bs.</div>
+        <span class="text-[10px] text-amber-500 font-medium">Ver Resumen Mes/Año</span>
+      </div>
+
+    </div>
+
+    <!-- TABS -->
+    <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
+      <button onclick="switchTab('hierarchy')" id="tab-btn-hierarchy" class="px-4 py-2 rounded-xl text-xs font-bold transition bg-emerald-600 text-white flex items-center gap-2 shadow">
+        <i class="fa-solid fa-sitemap"></i> 1. Colegios, Cursos, Directivos y Actividades
+      </button>
+      <button onclick="switchTab('summary')" id="tab-btn-summary" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition bg-slate-900 border border-slate-800 flex items-center gap-2">
+        <i class="fa-solid fa-chart-pie text-amber-400"></i> 2. Resumen Financiero Mes / Año
+      </button>
+      <button onclick="switchTab('users')" id="tab-btn-users" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition bg-slate-900 border border-slate-800 flex items-center gap-2">
+        <i class="fa-solid fa-users-gear text-purple-400"></i> 3. Gestión de Usuarios y Roles
+      </button>
+    </div>
+
+    <!-- SECTION 1: HIERARCHY SETUP -->
+    <div id="section-hierarchy" class="space-y-6">
+
+      <!-- 3-STEP CREATION ACCORDION / GRID -->
+      <div class="grid lg:grid-cols-3 gap-4" id="card-colegios">
+        
+        <!-- STEP 1: CREAR COLEGIO -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
+          <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
+            <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center border border-emerald-500/30">1</span>
+            <div>
+              <h3 class="text-sm font-bold text-white">Registrar Colegio</h3>
+              <p class="text-[10px] text-slate-400">Paso 1: Nombre de la institución</p>
+            </div>
+          </div>
+          <form onsubmit="handleCreateSchool(event)" class="space-y-3 text-xs">
+            <div>
+              <label class="block text-slate-300 font-semibold mb-1">Nombre del Colegio *</label>
+              <input type="text" id="sch-name" required placeholder="Ej. Colegio La Salle"
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-slate-300 font-semibold mb-1">Ciudad / Municipio</label>
+              <input type="text" id="sch-city" value="Santa Cruz de la Sierra"
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-school"></i> Guardar Colegio
+            </button>
+          </form>
+        </div>
+
+        <!-- STEP 2: CREAR CURSO -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3" id="step-crear-curso">
+          <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
+            <span class="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold flex items-center justify-center border border-cyan-500/30">2</span>
+            <div>
+              <h3 class="text-sm font-bold text-white">Registrar Curso</h3>
+              <p class="text-[10px] text-slate-400">Paso 2: Dentro del colegio elegido</p>
+            </div>
+          </div>
+          <form onsubmit="handleCreateCourse(event)" class="space-y-3 text-xs">
+            <div>
+              <label class="block text-slate-300 font-semibold mb-1">Seleccionar Colegio *</label>
+              <select id="crs-school-id" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                <option value="">-- Elige un colegio --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-300 font-semibold mb-1">Nombre del Curso *</label>
+              <input type="text" id="crs-grade" required placeholder="Ej. 4to B de Primaria"
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+            </div>
+            <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-graduation-cap"></i> Guardar Curso
+            </button>
+          </form>
+        </div>
+
+        <!-- STEP 3: CREAR DIRECTIVO Y ASIGNAR -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3" id="step-crear-directivo">
+          <div class="flex items-center gap-2 border-b border-slate-800 pb-2">
+            <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold flex items-center justify-center border border-amber-500/30">3</span>
+            <div>
+              <h3 class="text-sm font-bold text-white">Crear y Asignar Directivo</h3>
+              <p class="text-[10px] text-slate-400">Paso 3: Acceso para la presidenta</p>
+            </div>
+          </div>
+          <form onsubmit="handleCreateDirectivo(event)" class="space-y-2.5 text-xs">
+            <div>
+              <label class="block text-slate-300 font-semibold mb-1">Curso Asignado *</label>
+              <select id="dir-course-id" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+                <option value="">-- Elige un curso --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-300 font-semibold mb-1">Nombre de la Presidenta *</label>
+              <input type="text" id="dir-name" required placeholder="Ej. Sra. Laura Vaca"
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-slate-300 font-semibold mb-1">Correo (Usuario) *</label>
+                <input type="email" id="dir-email" required placeholder="laura@colegio.bo"
+                  class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <label class="block text-slate-300 font-semibold mb-1">Contraseña *</label>
+                <input type="text" id="dir-pwd" required placeholder="laura123"
+                  class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-amber-500">
+              </div>
+            </div>
+            <div>
+              <label class="block text-slate-300 font-semibold mb-1">WhatsApp</label>
+              <input type="tel" id="dir-phone" placeholder="77123456"
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+            </div>
+            <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-extrabold py-2 rounded-xl shadow transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-user-check"></i> Asignar Directivo
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- ACTIVITIES TABLE: EN EJECUCIÓN Y FINALIZADAS (NUEVO DETALLE) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4" id="card-actividades">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="font-bold text-white text-base flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-blue-400"></i> Detalle de Actividades y Cuotas Creadas por Directivo
+            </h2>
+            <p class="text-xs text-slate-400">Supervisa las actividades en ejecución, finalizadas, cuotas recurrentes y recaudaciones en vivo.</p>
+          </div>
+          <button onclick="loadOverview()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+            <i class="fa-solid fa-arrows-rotate mr-1"></i> Actualizar
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3">Colegio y Curso</th>
+                <th class="py-3 px-3">Actividad / Cuota</th>
+                <th class="py-3 px-3">Directivo Creador</th>
+                <th class="py-3 px-3 text-center">Tipo</th>
+                <th class="py-3 px-3 text-center">Modalidad</th>
+                <th class="py-3 px-3 text-center">Estado</th>
+                <th class="py-3 px-3 text-center">Pagaron</th>
+                <th class="py-3 px-3 text-right">Recaudado</th>
+              </tr>
+            </thead>
+            <tbody id="all-activities-tbody" class="divide-y divide-slate-800/80">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DIRECTIVOS TABLE -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4" id="card-directivos">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="font-bold text-white text-base flex items-center gap-2">
+              <i class="fa-solid fa-user-tie text-purple-400"></i> Directivos Registrados
+            </h2>
+            <p class="text-xs text-slate-400">Cuentas con permisos exclusivos para administrar sus respectivos cursos.</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3">Directivo</th>
+                <th class="py-3 px-3">Colegio Asignado</th>
+                <th class="py-3 px-3">Curso</th>
+                <th class="py-3 px-3">Correo / Usuario</th>
+                <th class="py-3 px-3 text-center">Actividades</th>
+                <th class="py-3 px-3 text-center">Estado</th>
+                <th class="py-3 px-3 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="directivos-tbody" class="divide-y divide-slate-800/80">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- COURSES TABLE & PUBLIC LINKS -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4" id="card-cursos">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div>
+            <h2 class="font-bold text-white text-base flex items-center gap-2">
+              <i class="fa-solid fa-graduation-cap text-cyan-400"></i> Cursos y Enlaces Públicos para Padres
+            </h2>
+            <p class="text-xs text-slate-400">Enlaces únicos que cada presidenta comparte con los padres de familia para ver cuotas y pagar por QR.</p>
+          </div>
+          <button onclick="openRosterModal()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1.5">
+            <i class="fa-solid fa-users"></i> Gestionar Alumnos de Cursos
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3">Colegio</th>
+                <th class="py-3 px-3">Curso</th>
+                <th class="py-3 px-3">Directivo a Cargo</th>
+                <th class="py-3 px-3 text-center">Alumnos</th>
+                <th class="py-3 px-3 text-center">Nómina</th>
+                <th class="py-3 px-3 text-right">Link Público para Padres</th>
+              </tr>
+            </thead>
+            <tbody id="courses-tbody" class="divide-y divide-slate-800/80">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SECTION 2: GLOBAL FINANCIAL SUMMARY -->
+    <div id="section-summary" class="hidden space-y-6">
+
+      <!-- FILTER BAR -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-calendar-check text-emerald-400"></i> Resumen Consolidado del Mes y Año
+          </h2>
+          <p class="text-xs text-slate-400">Filtra todas las actividades de cobro y revisa el dinero recaudado a nivel global.</p>
+        </div>
+
+        <div class="flex items-center gap-2 w-full md:w-auto">
+          <select id="fin-filter-year" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <option value="2026">Año 2026</option>
+            <option value="2025">Año 2025</option>
+            <option value="">Todos los Años</option>
+          </select>
+          <select id="fin-filter-month" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <option value="">Todo el Año</option>
+            <option value="01">Enero</option>
+            <option value="02">Febrero</option>
+            <option value="03">Marzo</option>
+            <option value="04">Abril</option>
+            <option value="05">Mayo</option>
+            <option value="06">Junio</option>
+            <option value="07">Julio</option>
+            <option value="08">Agosto</option>
+            <option value="09" selected>Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+          </select>
+          <button onclick="loadFinancialSummary()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
+            <i class="fa-solid fa-magnifying-glass"></i> Filtrar
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI FINANCIAL CARDS -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+          <span class="text-slate-400 text-xs font-semibold">Total Recaudado</span>
+          <div class="text-2xl font-extrabold text-emerald-400" id="fin-collected">0 Bs.</div>
+          <span class="text-[10px] text-slate-500" id="fin-meta">Meta Total: 0 Bs.</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+          <span class="text-slate-400 text-xs font-semibold">Total Pendiente</span>
+          <div class="text-2xl font-extrabold text-rose-400" id="fin-pending">0 Bs.</div>
+          <span class="text-[10px] text-slate-500">Falta por recaudar</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+          <span class="text-slate-400 text-xs font-semibold">% Cumplimiento Global</span>
+          <div class="text-2xl font-extrabold text-cyan-400" id="fin-percent">0%</div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
+            <div id="fin-bar" class="bg-cyan-400 h-full rounded-full transition-all" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+          <span class="text-slate-400 text-xs font-semibold">Actividades Filtradas</span>
+          <div class="text-2xl font-extrabold text-amber-400" id="fin-activities-count">0</div>
+          <span class="text-[10px] text-slate-500">Cobros registrados</span>
+        </div>
+      </div>
+
+      <!-- SUMMARY BY SCHOOL -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i class="fa-solid fa-school text-emerald-400"></i> Desglose por Colegio
+        </h3>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5" id="schools-summary-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- DETAILED ACTIVITIES SUMMARY TABLE -->
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <h3 class="font-bold text-white text-sm flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-cyan-400"></i> Detalle de Actividades de Cobro
+          </h3>
+          <button onclick="copyFinancialReport()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-copy"></i> Copiar Resumen
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3">Colegio y Curso</th>
+                <th class="py-3 px-3">Actividad</th>
+                <th class="py-3 px-3">Directivo</th>
+                <th class="py-3 px-3 text-center">Tipo</th>
+                <th class="py-3 px-3 text-center">Cuota</th>
+                <th class="py-3 px-3 text-center">Pagaron</th>
+                <th class="py-3 px-3 text-right">Recaudado</th>
+              </tr>
+            </thead>
+            <tbody id="financial-activities-tbody" class="divide-y divide-slate-800/80">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  
+    <!-- SECTION 3: USERS & MULTI-ROLE MANAGEMENT -->
+    <div id="section-users" class="hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-users-gear text-purple-400"></i> Directorio de Usuarios y Asignación de Roles
+            </h2>
+            <p class="text-xs text-slate-400">Crea, edita o elimina usuarios. Un usuario puede tener 1, 2 o los 3 roles asignados simultáneamente.</p>
+          </div>
+          <button onclick="openCreateUserModal()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-purple-500/20 transition">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Nuevo Usuario y Roles</span>
+          </button>
+        </div>
+
+        <!-- Filter / Search Users -->
+        <div class="flex items-center gap-3">
+          <div class="relative flex-grow">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+            <input type="text" id="users-search-input" oninput="renderUsersTable()" placeholder="Buscar usuario por nombre, correo o teléfono..." 
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500">
+          </div>
+          <button onclick="loadUsersList()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3.5 py-2.5 rounded-xl border border-slate-700 transition" title="Actualizar lista">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+        </div>
+
+        <!-- Table of Users -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3 text-center w-12">#</th>
+                <th class="py-3 px-3">Nombre Completo</th>
+                <th class="py-3 px-3">Correo Electrónico</th>
+                <th class="py-3 px-3">WhatsApp</th>
+                <th class="py-3 px-3 text-center">Roles Asignados (Multi-Rol)</th>
+                <th class="py-3 px-3">Curso Asignado</th>
+                <th class="py-3 px-3 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody" class="divide-y divide-slate-800/80">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+</main>
+
+  <!-- MODAL: GESTOR DE NÓMINA DE ALUMNOS POR CURSO -->
+  <div id="modal-roster" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="font-bold text-white text-base flex items-center gap-2">
+            <i class="fa-solid fa-users-gear text-emerald-400"></i> Gestor de Lista de Alumnos del Curso
+          </h3>
+          <p class="text-xs text-slate-400">Agrega, edita o pega la nómina completa desde Excel o WhatsApp.</p>
+        </div>
+        <button onclick="closeRosterModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Course Selector -->
+      <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center gap-3">
+        <label class="text-xs font-bold text-slate-300 whitespace-nowrap">Seleccionar Curso:</label>
+        <select id="roster-course-select" onchange="loadCourseRoster()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          <!-- Filled by JS -->
+        </select>
+      </div>
+
+      <!-- Add Student & Bulk Import Tabs -->
+      <div class="grid sm:grid-cols-2 gap-3">
+        
+        <!-- Single Student Form -->
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-2">
+          <span class="text-xs font-bold text-slate-300 block">➕ Añadir 1 Alumno</span>
+          <form onsubmit="handleAddSingleStudent(event)" class="space-y-2 text-xs">
+            <input type="text" id="roster-single-name" required placeholder="Nombre completo del alumno..."
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-emerald-500">
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-xl transition">
+              Guardar Alumno
+            </button>
+          </form>
+        </div>
+
+        <!-- Bulk Paste Box -->
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-2">
+          <span class="text-xs font-bold text-cyan-300 block">📋 Pegar Lista Completa (Varios alumnos)</span>
+          <form onsubmit="handleBulkImportStudents(event)" class="space-y-2 text-xs">
+            <textarea id="roster-bulk-text" rows="2" placeholder="1. Carlos Banegas
+2. Sofia Hurtado..."
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-cyan-500 text-xs font-mono"></textarea>
+            <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-1.5 rounded-xl transition">
+              Importar Lista
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Students Table in Modal -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-white" id="roster-students-count">0 Alumnos Registrados</span>
+          <span class="text-slate-500 text-[11px]">Haz clic en el lápiz para editar el nombre</span>
+        </div>
+
+        <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800 sticky top-0">
+              <tr>
+                <th class="py-2.5 px-3 w-10 text-center">#</th>
+                <th class="py-2.5 px-3">Nombre Completo</th>
+                <th class="py-2.5 px-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="roster-students-tbody" class="divide-y divide-slate-800/80 bg-slate-900">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('cuotas_token');
+    let overviewData = null;
+    let financialData = null;
+    let currentRosterCourseId = null;
+
+    async function checkAuth() {
+      if (!token) {
+        window.location.href = '/';
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.error || data.user.role !== 'SUPER_ADMIN') {
+          alert("Acceso exclusivo para Super Administrador.");
+          window.location.href = '/';
+          return;
+        }
+        document.getElementById('admin-user-name').innerText = `${data.user.name} • Control Maestro`;
+        loadOverview();
+      } catch (e) {
+        window.location.href = '/';
+      }
+    }
+
+    // Smooth scroll and focus on target section
+    function scrollToSection(id) {
+      if (document.getElementById('section-hierarchy').classList.contains('hidden')) {
+        switchTab('hierarchy');
+      }
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('highlight-target');
+        setTimeout(() => el.classList.remove('highlight-target'), 2000);
+      }
+    }
+
+    function switchTab(tab) {
+      document.getElementById('section-hierarchy').classList.toggle('hidden', tab !== 'hierarchy');
+      document.getElementById('section-summary').classList.toggle('hidden', tab !== 'summary');
+
+      const btnHierarchy = document.getElementById('tab-btn-hierarchy');
+      const btnSummary = document.getElementById('tab-btn-summary');
+
+      if (tab === 'hierarchy') {
+        btnHierarchy.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-emerald-600 text-white flex items-center gap-2 shadow";
+        btnSummary.className = "px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition bg-slate-900 border border-slate-800 flex items-center gap-2";
+      } else {
+        btnSummary.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-emerald-600 text-white flex items-center gap-2 shadow";
+        btnHierarchy.className = "px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition bg-slate-900 border border-slate-800 flex items-center gap-2";
+        loadFinancialSummary();
+      }
+    }
+
+    async function loadOverview() {
+      try {
+        const res = await fetch('/api/admin/overview', { headers: { 'Authorization': `Bearer ${token}` } });
+        overviewData = await res.json();
+
+        document.getElementById('stat-schools').innerText = overviewData.stats.totalSchools;
+        document.getElementById('stat-courses').innerText = overviewData.stats.totalCourses;
+        document.getElementById('stat-users').innerText = overviewData.stats.totalUsers;
+        document.getElementById('stat-students').innerText = overviewData.stats.totalStudents;
+        document.getElementById('stat-revenue').innerText = `${overviewData.stats.totalRevenue} Bs.`;
+
+        // 4th KPI Card: Actividades
+        document.getElementById('stat-activities').innerText = overviewData.stats.totalActivities;
+        document.getElementById('stat-activities-sub').innerText = `${overviewData.stats.activeActivities} en ejecución • ${overviewData.stats.finishedActivities} finalizadas`;
+
+        // Populate Selects
+        const schoolSelect = document.getElementById('crs-school-id');
+        schoolSelect.innerHTML = '<option value="">-- Elige un colegio --</option>';
+        overviewData.schools.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.innerText = `${s.name} (${s.city})`;
+          schoolSelect.appendChild(opt);
+        });
+
+        const courseSelect = document.getElementById('dir-course-id');
+        courseSelect.innerHTML = '<option value="">-- Elige un curso --</option>';
+        overviewData.courses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          const assignedText = c.president_name ? ` (Actual: ${c.president_name})` : ' (Sin Directivo)';
+          opt.innerText = `${c.school_name} -> ${c.grade_name}${assignedText}`;
+          courseSelect.appendChild(opt);
+        });
+
+        // Populate Roster Modal Course Select
+        const rosterCourseSelect = document.getElementById('roster-course-select');
+        rosterCourseSelect.innerHTML = '';
+        overviewData.courses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.innerText = `${c.school_name} - ${c.grade_name} (${c.student_count} alumnos)`;
+          rosterCourseSelect.appendChild(opt);
+        });
+        if (overviewData.courses.length > 0 && !currentRosterCourseId) {
+          currentRosterCourseId = overviewData.courses[0].id;
+        }
+
+        // Render All Activities Table
+        const actTbody = document.getElementById('all-activities-tbody');
+        actTbody.innerHTML = '';
+        overviewData.allActivities.forEach(act => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/40 transition";
+          const isAct = act.status === 'ACTIVA';
+          const isRec = act.type === 'RECURRENTE';
+          const hasRoster = act.require_roster === 1;
+
+          tr.innerHTML = `
+            <td class="py-3 px-3">
+              <span class="font-bold text-white block">${act.school_name}</span>
+              <span class="text-slate-400 text-[11px]">${act.grade_name}</span>
+            </td>
+            <td class="py-3 px-3">
+              <span class="font-semibold text-slate-100 block">${act.title}</span>
+              <span class="text-[10px] text-slate-400 font-mono">Cuota: ${act.amount_bob} Bs. ${isRec ? `(${act.installments_count} cuotas de ${act.installment_amount} Bs.)` : ''}</span>
+            </td>
+            <td class="py-3 px-3 text-slate-300 font-medium">${act.directivo_name}</td>
+            <td class="py-3 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isRec ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'}">
+                ${act.type || 'PUNTUAL'}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${hasRoster ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300'}">
+                ${hasRoster ? 'Con Lista' : 'Cobro Libre'}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isAct ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700 text-slate-400'}">
+                ${isAct ? 'EN EJECUCIÓN' : 'FINALIZADA'}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-center font-mono text-cyan-400">
+              ${act.payments_count} ${hasRoster ? `/ ${act.total_students}` : 'aportes'}
+            </td>
+            <td class="py-3 px-3 text-right font-bold text-emerald-400 font-mono">
+              ${act.total_collected} Bs.
+            </td>
+          `;
+          actTbody.appendChild(tr);
+        });
+
+        // Render Directivos Table
+        const dirTbody = document.getElementById('directivos-tbody');
+        dirTbody.innerHTML = '';
+        overviewData.directivos.forEach(d => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/40 transition";
+          const isAct = d.status === 'ACTIVO';
+          tr.innerHTML = `
+            <td class="py-3 px-3 font-semibold text-white">${d.name}</td>
+            <td class="py-3 px-3 text-slate-300">${d.school_name || '-'}</td>
+            <td class="py-3 px-3 text-emerald-400 font-medium">${d.grade_name || '<span class="text-slate-500">Sin curso</span>'}</td>
+            <td class="py-3 px-3 font-mono text-xs text-slate-300">${d.email}</td>
+            <td class="py-3 px-3 text-center font-mono text-cyan-400 font-semibold">${d.activities_count}</td>
+            <td class="py-3 px-3 text-center">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isAct ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
+                ${d.status}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-center">
+              <button onclick="toggleUserStatus(${d.id})" class="text-xs ${isAct ? 'text-amber-400 hover:text-amber-300' : 'text-emerald-400 hover:text-emerald-300'} font-semibold p-1">
+                ${isAct ? '<i class="fa-solid fa-pause"></i> Pausar' : '<i class="fa-solid fa-play"></i> Reactivar'}
+              </button>
+            </td>
+          `;
+          dirTbody.appendChild(tr);
+        });
+
+        // Render Courses Table
+        const crsTbody = document.getElementById('courses-tbody');
+        crsTbody.innerHTML = '';
+        overviewData.courses.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/40 transition";
+          tr.innerHTML = `
+            <td class="py-3 px-3 font-bold text-white">${c.school_name}</td>
+            <td class="py-3 px-3 font-semibold text-slate-200">${c.grade_name}</td>
+            <td class="py-3 px-3 text-slate-400">${c.president_name || '<span class="text-amber-400/80 italic">Pendiente de asignar</span>'}</td>
+            <td class="py-3 px-3 text-center font-mono">${c.student_count}</td>
+            <td class="py-3 px-3 text-center">
+              <button onclick="openRosterForCourse(${c.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 px-2 py-1 rounded-lg transition">
+                <i class="fa-solid fa-users mr-1"></i> Ver/Editar
+              </button>
+            </td>
+            <td class="py-3 px-3 text-right">
+              <a href="/?slug=${c.slug}" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 px-3 py-1.5 rounded-xl font-mono text-xs transition inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> /?slug=${c.slug}
+              </a>
+            </td>
+          `;
+          crsTbody.appendChild(tr);
+        });
+
+      } catch (e) {
+        console.error("Error loading overview:", e);
+      }
+    }
+
+    // Roster Management Modal
+    function openRosterModal() {
+      document.getElementById('modal-roster').classList.remove('hidden');
+      loadCourseRoster();
+    }
+
+    function openRosterForCourse(courseId) {
+      currentRosterCourseId = courseId;
+      document.getElementById('roster-course-select').value = courseId;
+      openRosterModal();
+    }
+
+    function closeRosterModal() {
+      document.getElementById('modal-roster').classList.add('hidden');
+    }
+
+    async function loadCourseRoster() {
+      const courseId = document.getElementById('roster-course-select').value || currentRosterCourseId;
+      if (!courseId) return;
+      currentRosterCourseId = courseId;
+
+      try {
+        const res = await fetch(`/api/admin/courses/${courseId}/students`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+
+        document.getElementById('roster-students-count').innerText = `${data.students.length} Alumnos en ${data.course.grade_name}`;
+
+        const tbody = document.getElementById('roster-students-tbody');
+        tbody.innerHTML = '';
+        if (data.students.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-500">Aún no hay alumnos en este curso. Agrega uno o pega una lista.</td></tr>`;
+          return;
+        }
+
+        data.students.forEach((s, idx) => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/40 transition";
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 text-center text-slate-500 font-mono">${idx + 1}</td>
+            <td class="py-2.5 px-3 font-semibold text-white" id="stud-name-${s.id}">${s.full_name}</td>
+            <td class="py-2.5 px-3 text-right space-x-1.5">
+              <button onclick="handleEditStudent(${s.id}, '${s.full_name}')" class="text-xs text-amber-400 hover:text-amber-300 p-1">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button onclick="handleDeleteStudent(${s.id}, '${s.full_name}')" class="text-xs text-rose-400 hover:text-rose-300 p-1">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (e) {
+        console.error("Error loading roster:", e);
+      }
+    }
+
+    async function handleAddSingleStudent(e) {
+      e.preventDefault();
+      const courseId = currentRosterCourseId;
+      const name = document.getElementById('roster-single-name').value;
+
+      try {
+        const res = await fetch(`/api/admin/courses/${courseId}/students`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ full_name: name })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('roster-single-name').value = '';
+          loadCourseRoster();
+          loadOverview();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo agregar'));
+        }
+      } catch (err) {
+        alert("Error de conexión");
+      }
+    }
+
+    async function handleBulkImportStudents(e) {
+      e.preventDefault();
+      const courseId = currentRosterCourseId;
+      const rawText = document.getElementById('roster-bulk-text').value;
+
+      try {
+        const res = await fetch(`/api/admin/courses/${courseId}/students/bulk`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ raw_text: rawText })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`¡${data.message}!`);
+          document.getElementById('roster-bulk-text').value = '';
+          loadCourseRoster();
+          loadOverview();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo importar'));
+        }
+      } catch (err) {
+        alert("Error de conexión");
+      }
+    }
+
+    async function handleEditStudent(studentId, oldName) {
+      const newName = prompt("Modificar nombre del alumno/a:", oldName);
+      if (newName && newName.trim() && newName.trim() !== oldName) {
+        try {
+          const res = await fetch(`/api/admin/students/${studentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ full_name: newName.trim() })
+          });
+          const data = await res.json();
+          if (data.success) loadCourseRoster();
+        } catch (e) {
+          alert("Error al actualizar alumno");
+        }
+      }
+    }
+
+    async function handleDeleteStudent(studentId, name) {
+      if (confirm(`¿Estás seguro de eliminar a "${name}" de la lista del curso?`)) {
+        try {
+          const res = await fetch(`/api/admin/students/${studentId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (data.success) {
+            loadCourseRoster();
+            loadOverview();
+          }
+        } catch (e) {
+          alert("Error al eliminar alumno");
+        }
+      }
+    }
+
+    async function handleCreateSchool(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('sch-name').value,
+        city: document.getElementById('sch-city').value
+      };
+      try {
+        const res = await fetch('/api/admin/schools', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("¡Colegio registrado con éxito!");
+          document.getElementById('sch-name').value = '';
+          loadOverview();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo crear'));
+        }
+      } catch (err) {
+        alert("Error de conexión");
+      }
+    }
+
+    async function handleCreateCourse(e) {
+      e.preventDefault();
+      const payload = {
+        school_id: document.getElementById('crs-school-id').value,
+        grade_name: document.getElementById('crs-grade').value
+      };
+      try {
+        const res = await fetch('/api/admin/courses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`¡Curso creado con éxito!
+Link público generado: /?slug=${data.slug}`);
+          document.getElementById('crs-grade').value = '';
+          loadOverview();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo crear'));
+        }
+      } catch (err) {
+        alert("Error de conexión");
+      }
+    }
+
+    async function handleCreateDirectivo(e) {
+      e.preventDefault();
+      const payload = {
+        course_id: document.getElementById('dir-course-id').value,
+        name: document.getElementById('dir-name').value,
+        email: document.getElementById('dir-email').value,
+        password: document.getElementById('dir-pwd').value,
+        phone: document.getElementById('dir-phone').value
+      };
+      try {
+        const res = await fetch('/api/admin/directivos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("¡Directivo creado y asignado al curso exitosamente!");
+          document.getElementById('dir-name').value = '';
+          document.getElementById('dir-email').value = '';
+          document.getElementById('dir-pwd').value = '';
+          document.getElementById('dir-phone').value = '';
+          loadOverview();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo crear'));
+        }
+      } catch (err) {
+        alert("Error de conexión");
+      }
+    }
+
+    async function toggleUserStatus(userId) {
+      try {
+        const res = await fetch(`/api/admin/users/${userId}/status`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) loadOverview();
+      } catch (e) {
+        alert("Error al cambiar estado.");
+      }
+    }
+
+    async function loadFinancialSummary() {
+      const year = document.getElementById('fin-filter-year').value;
+      const month = document.getElementById('fin-filter-month').value;
+      let url = `/api/admin/financial-summary?year=${year}&month=${month}`;
+
+      try {
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        financialData = await res.json();
+
+        document.getElementById('fin-collected').innerText = `${financialData.totalCollected} Bs.`;
+        document.getElementById('fin-meta').innerText = `Meta Total: ${financialData.totalTarget} Bs.`;
+        document.getElementById('fin-pending').innerText = `${financialData.totalPending} Bs.`;
+        document.getElementById('fin-percent').innerText = `${financialData.compliancePercent}%`;
+        document.getElementById('fin-bar').style.width = `${financialData.compliancePercent}%`;
+        document.getElementById('fin-activities-count').innerText = financialData.byActivity.length;
+
+        // Render Schools Summary
+        const schGrid = document.getElementById('schools-summary-grid');
+        schGrid.innerHTML = '';
+        if (financialData.bySchool.length === 0) {
+          schGrid.innerHTML = `<span class="text-xs text-slate-500">No hay movimientos en este periodo seleccionado.</span>`;
+        } else {
+          financialData.bySchool.forEach(s => {
+            const card = document.createElement('div');
+            card.className = "bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-1";
+            card.innerHTML = `
+              <span class="text-white font-bold text-xs block">${s.school_name}</span>
+              <div class="text-lg font-extrabold text-emerald-400">${s.total_collected} Bs.</div>
+              <span class="text-[10px] text-slate-400">${s.courses_count} Cursos • ${s.activities_count} Actividades</span>
+            `;
+            schGrid.appendChild(card);
+          });
+        }
+
+        // Render Activities Summary Table
+        const tbody = document.getElementById('financial-activities-tbody');
+        tbody.innerHTML = '';
+        financialData.byActivity.forEach(act => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/40 transition";
+          const isRec = act.type === 'RECURRENTE';
+          tr.innerHTML = `
+            <td class="py-3 px-3">
+              <span class="font-bold text-white block">${act.school_name}</span>
+              <span class="text-slate-400 text-[11px]">${act.grade_name}</span>
+            </td>
+            <td class="py-3 px-3 font-semibold text-slate-200">${act.title}</td>
+            <td class="py-3 px-3 text-slate-400">${act.directivo_name}</td>
+            <td class="py-3 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isRec ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'}">${act.type || 'PUNTUAL'}</span>
+            </td>
+            <td class="py-3 px-3 text-center font-mono">${act.amount_bob} Bs.</td>
+            <td class="py-3 px-3 text-center font-mono text-cyan-400">${act.total_payments} ${act.require_roster === 1 ? `/ ${act.total_students}` : 'aportes'}</td>
+            <td class="py-3 px-3 text-right font-bold text-emerald-400 font-mono">${act.total_collected} Bs.</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (e) {
+        console.error("Error loading financial summary:", e);
+      }
+    }
+
+    async function copyFinancialReport() {
+      if (!financialData) return;
+      const year = document.getElementById('fin-filter-year').value || 'Todos';
+      const month = document.getElementById('fin-filter-month').value || 'Todos';
+
+      let msg = `📊 *RESUMEN FINANCIERO GLOBAL - PLATAFORMA DE CUOTAS*
+`;
+      msg += `📅 Periodo: Año ${year} - Mes ${month}
+`;
+      msg += `💰 Total Recaudado: *${financialData.totalCollected} Bs.* de una meta de *${financialData.totalTarget} Bs.* (${financialData.compliancePercent}%)
+`;
+      msg += `⏳ Total Pendiente por Cobrar: *${financialData.totalPending} Bs.*
+
+`;
+
+      msg += `🏫 *DESGLOSE POR COLEGIO:*
+`;
+      financialData.bySchool.forEach(s => {
+        msg += `• ${s.school_name}: *${s.total_collected} Bs.* (${s.activities_count} actividades)
+`;
+      });
+
+      msg += `
+📋 *DETALLE POR ACTIVIDAD:*
+`;
+      financialData.byActivity.forEach((a, idx) => {
+        msg += `${idx + 1}. [${a.school_name} - ${a.grade_name}] "${a.title}": ${a.total_collected} Bs. (${a.total_payments}/${a.total_students} alumnos)
+`;
+      });
+
+      await navigator.clipboard.writeText(msg);
+      alert("¡Resumen Financiero copiado al portapapeles con formato listo para WhatsApp o correo!");
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('cuotas_token');
+      localStorage.removeItem('cuotas_user');
+      window.location.href = '/';
+    }
+
+    
+    let systemUsersList = [];
+
+    async function loadUsersList() {
+      try {
+        const res = await fetch('/api/admin/users', { headers: { 'Authorization': `Bearer ${token}` } });
+        systemUsersList = await res.json();
+        renderUsersTable();
+      } catch (err) {
+        console.error("Error loading users:", err);
+      }
+    }
+
+    function renderUsersTable() {
+      const q = (document.getElementById('users-search-input')?.value || '').toLowerCase().trim();
+      const tbody = document.getElementById('users-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      let filtered = systemUsersList.filter(u => {
+        return (u.name || '').toLowerCase().includes(q) ||
+               (u.email || '').toLowerCase().includes(q) ||
+               (u.phone || '').includes(q);
+      });
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500">No se encontraron usuarios con ese criterio.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach((u, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/40 transition";
+
+        // Badges for roles
+        const roles = u.roles || [u.role];
+        let badgesHtml = '';
+        if (roles.includes('SUPER_ADMIN')) {
+          badgesHtml += `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 mr-1"><i class="fa-solid fa-crown text-[9px]"></i> SUPER_ADMIN</span>`;
+        }
+        if (roles.includes('DIRECTIVO')) {
+          badgesHtml += `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mr-1"><i class="fa-solid fa-user-tie text-[9px]"></i> DIRECTIVO</span>`;
+        }
+        if (roles.includes('PADRE')) {
+          badgesHtml += `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"><i class="fa-solid fa-users text-[9px]"></i> PADRE</span>`;
+        }
+
+        const courseText = u.grade_name ? `${u.grade_name} (${u.school_name})` : '<span class="text-slate-500">-</span>';
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 text-center text-slate-500 font-mono">${idx + 1}</td>
+          <td class="py-3 px-3 font-bold text-white">${u.name}</td>
+          <td class="py-3 px-3 font-mono text-slate-300">${u.email}</td>
+          <td class="py-3 px-3 font-mono text-emerald-400">${u.phone || '-'}</td>
+          <td class="py-3 px-3 text-center">${badgesHtml}</td>
+          <td class="py-3 px-3 text-slate-300 text-[11px]">${courseText}</td>
+          <td class="py-3 px-3 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="openEditUserModal(${u.id})" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700 text-[11px] font-semibold transition" title="Editar">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button onclick="handleDeleteUser(${u.id}, '${u.name}')" class="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[11px] font-semibold transition" title="Eliminar">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function populateCourseSelectForUsers() {
+      const sel = document.getElementById('usr-modal-course-id');
+      if (!sel || !hierarchyData) return;
+      sel.innerHTML = '<option value="">-- Sin curso asignado --</option>';
+      hierarchyData.courses.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.innerText = `${c.school_name} - ${c.grade_name}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function openCreateUserModal() {
+      populateCourseSelectForUsers();
+      document.getElementById('modal-user-title').innerHTML = '<i class="fa-solid fa-user-plus text-purple-400"></i> Registrar Nuevo Usuario';
+      document.getElementById('usr-modal-id').value = '';
+      document.getElementById('usr-modal-name').value = '';
+      document.getElementById('usr-modal-email').value = '';
+      document.getElementById('usr-modal-phone').value = '';
+      document.getElementById('usr-modal-password').value = '';
+      document.getElementById('usr-modal-password').required = true;
+      document.getElementById('usr-pwd-hint').innerText = 'Contraseña obligatoria para nuevos usuarios.';
+      document.getElementById('usr-modal-course-id').value = '';
+
+      document.getElementById('chk-role-superadmin').checked = false;
+      document.getElementById('chk-role-directivo').checked = true;
+      document.getElementById('chk-role-padre').checked = false;
+      document.getElementById('usr-modal-error').classList.add('hidden');
+
+      document.getElementById('modal-user-crud').classList.remove('hidden');
+    }
+
+    function openEditUserModal(id) {
+      const u = systemUsersList.find(x => x.id === id);
+      if (!u) return;
+
+      populateCourseSelectForUsers();
+      document.getElementById('modal-user-title').innerHTML = `<i class="fa-solid fa-user-pen text-purple-400"></i> Editar Usuario: ${u.name}`;
+      document.getElementById('usr-modal-id').value = u.id;
+      document.getElementById('usr-modal-name').value = u.name;
+      document.getElementById('usr-modal-email').value = u.email;
+      document.getElementById('usr-modal-phone').value = u.phone || '';
+      document.getElementById('usr-modal-password').value = '';
+      document.getElementById('usr-modal-password').required = false;
+      document.getElementById('usr-pwd-hint').innerText = 'Déjala en blanco para mantener la contraseña actual.';
+      document.getElementById('usr-modal-course-id').value = u.course_id || '';
+
+      const roles = u.roles || [u.role];
+      document.getElementById('chk-role-superadmin').checked = roles.includes('SUPER_ADMIN');
+      document.getElementById('chk-role-directivo').checked = roles.includes('DIRECTIVO');
+      document.getElementById('chk-role-padre').checked = roles.includes('PADRE');
+      document.getElementById('usr-modal-error').classList.add('hidden');
+
+      document.getElementById('modal-user-crud').classList.remove('hidden');
+    }
+
+    function closeUserModal() {
+      document.getElementById('modal-user-crud').classList.add('hidden');
+    }
+
+    async function handleSaveUser(e) {
+      e.preventDefault();
+      const id = document.getElementById('usr-modal-id').value;
+      const name = document.getElementById('usr-modal-name').value.trim();
+      const email = document.getElementById('usr-modal-email').value.trim();
+      const phone = document.getElementById('usr-modal-phone').value.trim();
+      const password = document.getElementById('usr-modal-password').value;
+      const course_id = document.getElementById('usr-modal-course-id').value || null;
+      const errEl = document.getElementById('usr-modal-error');
+
+      const roles = [];
+      if (document.getElementById('chk-role-superadmin').checked) roles.push('SUPER_ADMIN');
+      if (document.getElementById('chk-role-directivo').checked) roles.push('DIRECTIVO');
+      if (document.getElementById('chk-role-padre').checked) roles.push('PADRE');
+
+      if (roles.length === 0) {
+        errEl.innerText = 'Debes seleccionar al menos 1 rol para el usuario.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      errEl.classList.add('hidden');
+      const btn = document.getElementById('btn-save-usr');
+      btn.disabled = true;
+      btn.innerText = 'Guardando...';
+
+      try {
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `/api/admin/users/${id}` : '/api/admin/users';
+        const body = {
+          full_name: name,
+          email,
+          phone,
+          roles,
+          course_id
+        };
+        if (password) body.password = password;
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          closeUserModal();
+          await loadUsersList();
+          await loadHierarchy();
+        } else {
+          errEl.innerText = data.error || 'Error al guardar usuario.';
+          errEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errEl.innerText = 'Error de conexión con el servidor.';
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Guardar Usuario';
+      }
+    }
+
+    async function handleDeleteUser(id, name) {
+      if (!confirm(`¿Estás seguro de eliminar el usuario "${name}"? Esta acción removerá sus accesos.`)) return;
+
+      try {
+        const res = await fetch(`/api/admin/users/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          await loadUsersList();
+          await loadHierarchy();
+        } else {
+          alert(data.error || 'Error al eliminar usuario.');
+        }
+      } catch (err) {
+        alert('Error de conexión.');
+      }
+    }
+
+
+    checkAuth();
+  </script>
+</body>
+</html>

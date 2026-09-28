@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Directivo | Gestión de Cuotas Escolares</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b1120; color: #f8fafc; }
+  </style>
+</head>
+<body class="min-h-screen pb-16 antialiased">
+
+  <!-- SUPER ADMIN BANNER (IF SUPER ADMIN LOGGED IN) -->
+  <div id="super-admin-banner" class="hidden bg-amber-500 text-slate-950 px-4 py-2 text-xs font-bold flex items-center justify-between shadow-lg">
+    <div class="flex items-center gap-2">
+      <i class="fa-solid fa-crown text-sm"></i>
+      <span>Modo Super Administrador: Estás previsualizando la vista de este curso.</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/admin-maestro.html" class="bg-slate-950 text-white px-3 py-1 rounded-lg text-[11px] hover:bg-slate-800 transition">
+        Ir al Panel Maestro
+      </a>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center text-slate-950 font-extrabold text-base shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <div>
+          <span class="font-bold text-white text-sm leading-tight block" id="directivo-user-name">Cargando directivo...</span>
+          <span class="text-[11px] text-emerald-400 font-semibold" id="directivo-course-name">Cargando curso...</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button onclick="openFinancialSummaryModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-chart-line"></i> Resumen Mes / Año
+        </button>
+        <a id="public-link-btn" href="/" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-eye text-emerald-400"></i> Portal Padres
+        </a>
+        <div id="role-switch-directivo" class="flex items-center gap-1.5">
+          <!-- Multi-role shortcuts rendered by JS -->
+        </div>
+        <button onclick="handleLogout()" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 px-3 py-1.5 rounded-xl border border-rose-500/30 flex items-center gap-1 transition">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 pt-6 space-y-6">
+
+    <!-- ACTIVITIES TABS & CREATE / EDIT / QR BUTTONS -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-emerald-400"></i> Actividades de Cobro del Curso
+          </h2>
+          <p class="text-xs text-slate-400">Crea cuotas puntuales (Kermesse, poleras) o cuotas recurrentes (Caja Chica 10 meses).</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Botón Cambiar QR -->
+          <button onclick="openChangeQrModal()" id="btn-change-qr" class="bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-qrcode"></i> Cambiar QR
+          </button>
+          <!-- Botón Editar Actividad -->
+          <button onclick="openEditActivityModal()" id="btn-edit-current-act" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-pen-to-square"></i> Editar Actividad
+          </button>
+          <!-- Botón Nueva Actividad -->
+          <button onclick="openCreateActivityModal()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 transition">
+            <i class="fa-solid fa-plus"></i> Nueva Cuota
+          </button>
+        </div>
+      </div>
+
+      <!-- Activity Selection Buttons -->
+      <div id="activities-buttons-container" class="flex flex-wrap gap-2">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- CURRENT ACTIVITY KPI CARDS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <span class="text-xs text-slate-400 font-semibold">Total Recaudado</span>
+        <div class="text-2xl font-extrabold text-emerald-400" id="act-collected">0 Bs.</div>
+        <span class="text-[10px] text-slate-500" id="act-target">Meta: 0 Bs.</span>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <span class="text-xs text-slate-400 font-semibold">Alumnos al Día</span>
+        <div class="text-2xl font-extrabold text-white" id="act-paid-count">0</div>
+        <span class="text-[10px] text-emerald-400" id="act-percent">0% completado</span>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <span class="text-xs text-slate-400 font-semibold">Alumnos Pendientes</span>
+        <div class="text-2xl font-extrabold text-rose-400" id="act-pending-count">0</div>
+        <span class="text-[10px] text-slate-500">Faltan por abonar</span>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-1">
+        <div class="flex items-center justify-between text-xs text-slate-400 font-semibold">
+          <span>Modalidad / Cuota</span>
+          <span id="act-badge-type" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300">Puntual</span>
+        </div>
+        <div class="text-2xl font-extrabold text-amber-400" id="act-amount">0 Bs.</div>
+        <span class="text-[10px] text-slate-500" id="act-deadline">Límite: -</span>
+      </div>
+    </div>
+
+    <!-- WHATSAPP REPORT ACTIONS BAR -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-bullhorn text-amber-400"></i> Reporte para el Grupo de WhatsApp de Padres
+        </h2>
+        <p class="text-xs text-slate-400">Copia el reporte con la lista de quiénes pagaron y quiénes faltan con 1 solo clic.</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <button onclick="exportLetterPdfReport()" class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-2.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-xs transition">
+          <i class="fa-solid fa-file-pdf text-red-300"></i>
+          <span>📄 Exportar Informe PDF (Carta)</span>
+        </button>
+        <button onclick="copyWhatsAppReport()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-xs transition">
+          <i class="fa-solid fa-copy"></i>
+          <span>Copiar Reporte para WhatsApp</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- STUDENTS ROSTER & PAYMENT TOGGLES -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div>
+          <h2 class="font-bold text-white text-base">Planilla del Curso (<span id="current-act-title-sub">Actividad</span>)</h2>
+          <p class="text-xs text-slate-400">La IA registra los recibos de WhatsApp. Puedes asentar pagos en efectivo manuales aquí.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="student-search" oninput="renderStudentsTable()" placeholder="Buscar alumno o aportante..."
+            class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500 w-44 sm:w-56">
+          <button onclick="openAddStudentModal()" id="btn-add-student" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
+            <i class="fa-solid fa-user-plus"></i> Añadir Alumno
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="py-3 px-3 w-10 text-center">#</th>
+              <th class="py-3 px-3">Nombre Completo del Alumno / Aportante</th>
+              <th class="py-3 px-3 text-center">Estado Cuota</th>
+              <th class="py-3 px-3 text-center" id="th-progress">Progreso / Cuotas</th>
+              <th class="py-3 px-3">Fecha de Pago</th>
+              <th class="py-3 px-3 text-center">Acción Manual</th>
+            </tr>
+          </thead>
+          <tbody id="students-tbody" class="divide-y divide-slate-800/80">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: CREAR NUEVA ACTIVIDAD (PUNTUAL O RECURRENTE) -->
+  <div id="modal-create-act" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle text-emerald-400"></i> Nueva Actividad de Cobro
+        </h3>
+        <button onclick="closeCreateActivityModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="form-new-act" onsubmit="handleCreateActivity(event)" class="space-y-3 text-xs">
+        
+        <!-- SELECTOR TIPO DE CUOTA -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tipo de Actividad *</label>
+            <select id="act-type-in" onchange="toggleRecurringInputs('create')" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+              <option value="PUNTUAL">Cuota Puntual (Kermesse, etc.)</option>
+              <option value="RECURRENTE">Cuota Recurrente (Caja Chica)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Modalidad de Registro *</label>
+            <select id="act-roster-in" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+              <option value="1">Con Nómina fija de Alumnos</option>
+              <option value="0">Cobro Libre (Sin lista previa / Rifas)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Título de la Cuota / Actividad *</label>
+          <input type="text" id="act-title-in" required placeholder="Ej. Caja Chica Mensual / Cuota Kermesse"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <!-- RECURRING FIELDS (HIDDEN BY DEFAULT) -->
+        <div id="create-recurring-fields" class="hidden p-3 rounded-2xl bg-purple-500/10 border border-purple-500/20 space-y-2">
+          <span class="text-[11px] font-bold text-purple-300 block">⚙️ Configuración Cuota Recurrente (Caja Chica):</span>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Monto por Mes (Bs.) *</label>
+              <input type="number" step="0.5" id="act-rec-month-amount" value="20" placeholder="Ej. 20"
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Cantidad de Meses *</label>
+              <input type="number" id="act-rec-months-count" value="10" placeholder="Ej. 10"
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-400">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1" id="lbl-amount">Monto Total por Alumno (Bs.) *</label>
+            <input type="number" step="0.5" id="act-amount-in" required placeholder="Ej. 20 o 200"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Fecha Límite *</label>
+            <input type="text" id="act-date-in" required placeholder="Ej. 30 de Noviembre, 2026"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Descripción / Para qué es la cuota</label>
+          <textarea id="act-desc-in" rows="2" placeholder="Explicación para los padres de familia..."
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Banco Receptor *</label>
+            <input type="text" id="act-bank-in" required value="Banco Ganadero"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Cuenta de Abono *</label>
+            <input type="text" id="act-acc-in" required value="CA 1310325959"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Titular de Cuenta *</label>
+          <input type="text" id="act-holder-in" required value="SIMONS SIMONS DANIEL BATHAL"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg transition">
+            Crear y Publicar Cuota
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR ACTIVIDAD -->
+  <div id="modal-edit-act" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-amber-400"></i> Editar Actividad de Cobro
+        </h3>
+        <button onclick="closeEditActivityModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="form-edit-act" onsubmit="handleEditActivity(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="edit-act-id">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Título de la Cuota / Actividad *</label>
+          <input type="text" id="edit-act-title" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Monto por Alumno (Bs.) *</label>
+            <input type="number" step="0.5" id="edit-act-amount" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Fecha Límite *</label>
+            <input type="text" id="edit-act-date" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Estado de la Actividad</label>
+          <select id="edit-act-status" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+            <option value="ACTIVA">ACTIVA (En Ejecución)</option>
+            <option value="FINALIZADA">FINALIZADA (Cerrada)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Descripción</label>
+          <textarea id="edit-act-desc" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Banco Receptor *</label>
+            <input type="text" id="edit-act-bank" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Cuenta de Abono *</label>
+            <input type="text" id="edit-act-acc" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Titular de Cuenta *</label>
+          <input type="text" id="edit-act-holder" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-amber-500">
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg transition">
+            Guardar Cambios de la Actividad
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CAMBIAR / RENOVAR CÓDIGO QR BANCARIO -->
+  <div id="modal-change-qr" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center gap-2">
+          <i class="fa-solid fa-qrcode text-cyan-400"></i> Renovar Código QR Bancario
+        </h3>
+        <button onclick="closeChangeQrModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <p class="text-slate-400">Los bancos vencen el QR cada 3 meses. Sube aquí la nueva captura o imagen para que los padres sigan pagando sin problemas.</p>
+        
+        <!-- Preview Box -->
+        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-2">
+          <span class="text-[10px] text-slate-500 block font-semibold">Previsualización del QR:</span>
+          <img id="qr-preview-img" src="/images/qr_cuenta.png" class="max-h-48 mx-auto rounded-xl border border-slate-700 object-contain shadow-md">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Seleccionar Nueva Imagen QR</label>
+          <input type="file" id="qr-file-input" accept="image/*" onchange="handleQrFileSelect(event)"
+            class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 cursor-pointer">
+        </div>
+
+        <button onclick="saveNewQrImage()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-floppy-disk"></i> Guardar y Actualizar QR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR PAGO RECURRENTE (ABONO DE CUOTAS) -->
+  <div id="modal-pay-recurring" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i class="fa-solid fa-hand-holding-dollar text-emerald-400"></i> Registrar Abono de Cuota
+        </h3>
+        <button onclick="closePayRecurringModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <span class="text-slate-400 block text-[10px]">Alumno:</span>
+          <span class="text-white font-bold text-sm block" id="modal-rec-student-name">-</span>
+          <span class="text-emerald-400 text-[11px] block mt-1" id="modal-rec-status-info">Abonado: 0 Bs. (0/10 cuotas)</span>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Monto que paga ahora (Bs.) *</label>
+          <input type="number" step="0.5" id="modal-rec-amount" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-bold text-sm">
+          <span class="text-[10px] text-slate-500 mt-1 block" id="modal-rec-hint">Sugerencia: 20 Bs. (1 mes) o 40 Bs. (2 meses)</span>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Método de Pago</label>
+          <select id="modal-rec-method" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+            <option value="EFECTIVO">Efectivo en Mano</option>
+            <option value="QR SIMPLE">Transferencia QR</option>
+          </select>
+        </div>
+
+        <button onclick="submitRecurringPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl shadow-lg transition">
+          Confirmar Abono
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RESUMEN FINANCIERO DEL CURSO (MES / AÑO) -->
+  <div id="modal-financial" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie text-emerald-400"></i> Resumen Financiero del Curso
+        </h3>
+        <button onclick="closeFinancialSummaryModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex items-center gap-2">
+        <select id="modal-fin-year" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white">
+          <option value="2026">Año 2026</option>
+          <option value="2025">Año 2025</option>
+          <option value="">Todos los Años</option>
+        </select>
+        <select id="modal-fin-month" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white">
+          <option value="">Todo el Año</option>
+          <option value="09" selected>Septiembre</option>
+          <option value="10">Octubre</option>
+          <option value="11">Noviembre</option>
+          <option value="12">Diciembre</option>
+        </select>
+        <button onclick="fetchDirectivoFinancialSummary()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs">
+          Ver Resumen
+        </button>
+      </div>
+
+      <!-- Financial Metrics Cards -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 font-semibold block">Total Recaudado</span>
+          <span class="text-lg font-bold text-emerald-400" id="modal-fin-collected">0 Bs.</span>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 font-semibold block">Meta de Cobro</span>
+          <span class="text-lg font-bold text-white" id="modal-fin-target">0 Bs.</span>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 font-semibold block">Por Cobrar</span>
+          <span class="text-lg font-bold text-rose-400" id="modal-fin-pending">0 Bs.</span>
+        </div>
+      </div>
+
+      <!-- Activity breakdown -->
+      <div class="space-y-2">
+        <h4 class="text-xs font-bold text-slate-300">Actividades en este periodo:</h4>
+        <div id="modal-fin-activities" class="space-y-2">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('cuotas_token');
+    let dashboardData = null;
+    let selectedActivityId = null;
+    let currentSelectedStudentForRecurring = null;
+    let newQrBase64 = null;
+
+    async function checkAuth() {
+      if (!token) {
+        window.location.href = '/';
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.error) {
+          window.location.href = '/';
+          return;
+        }
+
+        const roles = data.user.roles || [data.user.role];
+        const isSuper = roles.includes('SUPER_ADMIN');
+        if (isSuper) {
+          document.getElementById('super-admin-banner').classList.remove('hidden');
+          document.getElementById('directivo-user-name').innerText = `${data.user.name} (Modo Super Admin)`;
+        } else {
+          document.getElementById('directivo-user-name').innerText = data.user.name;
+        }
+
+        // Render multi-role switch buttons
+        const roleSwitchDiv = document.getElementById('role-switch-directivo');
+        if (roleSwitchDiv && roles.length > 1) {
+          roleSwitchDiv.innerHTML = '';
+          if (roles.includes('SUPER_ADMIN')) {
+            roleSwitchDiv.innerHTML += '<a href="/admin-maestro.html" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl flex items-center gap-1 transition font-semibold"><i class="fa-solid fa-crown text-[10px]"></i> <span class="hidden sm:inline">Super Admin</span></a>';
+          }
+          if (roles.includes('PADRE')) {
+            roleSwitchDiv.innerHTML += '<a href="/padre.html" class="text-xs bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 px-2.5 py-1.5 rounded-xl flex items-center gap-1 transition font-semibold"><i class="fa-solid fa-users text-[10px]"></i> <span class="hidden sm:inline">Vista Padre</span></a>';
+          }
+        }
+
+        loadDashboard();
+      } catch (e) {
+        window.location.href = '/';
+      }
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/directivo/dashboard', { headers: { 'Authorization': `Bearer ${token}` } });
+        dashboardData = await res.json();
+
+        if (dashboardData.course) {
+          document.getElementById('directivo-course-name').innerText = `${dashboardData.course.grade_name} • ${dashboardData.course.school_name}`;
+          document.getElementById('public-link-btn').href = `/?slug=${dashboardData.course.slug}`;
+        }
+
+        renderActivitiesButtons();
+        renderCurrentActivity();
+      } catch (e) {
+        console.error("Dashboard error:", e);
+      }
+    }
+
+    function renderActivitiesButtons() {
+      const container = document.getElementById('activities-buttons-container');
+      container.innerHTML = '';
+
+      if (!dashboardData.activities.length) {
+        container.innerHTML = `<span class="text-slate-500 text-xs">No hay actividades creadas aún. Pulsa el botón "Nueva Cuota" para comenzar.</span>`;
+        document.getElementById('btn-edit-current-act').style.display = 'none';
+        document.getElementById('btn-change-qr').style.display = 'none';
+        return;
+      }
+
+      document.getElementById('btn-edit-current-act').style.display = 'inline-flex';
+      document.getElementById('btn-change-qr').style.display = 'inline-flex';
+
+      if (!selectedActivityId || !dashboardData.activities.some(a => a.id === selectedActivityId)) {
+        selectedActivityId = dashboardData.activities[0].id;
+      }
+
+      dashboardData.activities.forEach(act => {
+        const btn = document.createElement('button');
+        const isSelected = act.id === selectedActivityId;
+        const isRec = act.type === 'RECURRENTE';
+        btn.onclick = () => { selectedActivityId = act.id; renderActivitiesButtons(); renderCurrentActivity(); };
+
+        btn.className = isSelected 
+          ? "px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-md border border-emerald-500 flex items-center gap-1.5"
+          : "px-4 py-2 rounded-xl bg-slate-950 text-slate-300 hover:text-white font-medium text-xs border border-slate-800 transition flex items-center gap-1.5";
+
+        btn.innerHTML = `
+          ${isRec ? '<i class="fa-solid fa-repeat text-[10px] text-purple-300"></i>' : '<i class="fa-solid fa-tag text-[10px] text-cyan-300"></i>'}
+          <span>${act.title}</span>
+          <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] ${isSelected ? 'bg-black/30 text-emerald-200' : 'bg-slate-800 text-amber-300 font-bold'}">${act.amount_bob} Bs.</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function renderCurrentActivity() {
+      const act = dashboardData.activities.find(a => a.id === selectedActivityId);
+      if (!act) return;
+
+      const isRec = act.type === 'RECURRENTE';
+      const hasRoster = act.require_roster === 1;
+
+      document.getElementById('current-act-title-sub').innerText = act.title;
+      document.getElementById('act-collected').innerText = `${act.totalCollected} Bs.`;
+      document.getElementById('act-target').innerText = `Meta: ${act.targetAmount} Bs.`;
+      document.getElementById('act-paid-count').innerText = `${act.paidCount} / ${hasRoster ? dashboardData.students.length : act.paidCount}`;
+      document.getElementById('act-percent').innerText = `${act.percent}% completado`;
+      document.getElementById('act-pending-count').innerText = act.pendingCount;
+      document.getElementById('act-amount').innerText = `${act.amount_bob} Bs.`;
+      document.getElementById('act-deadline').innerText = `Límite: ${act.deadline_date}`;
+
+      const badgeType = document.getElementById('act-badge-type');
+      if (isRec) {
+        badgeType.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30";
+        badgeType.innerText = `Recurrente (${act.installments_count} x ${act.installment_amount} Bs.)`;
+      } else {
+        badgeType.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30";
+        badgeType.innerText = hasRoster ? 'Puntual con Lista' : 'Cobro Libre';
+      }
+
+      // Hide or show add student button
+      document.getElementById('btn-add-student').style.display = hasRoster ? 'inline-flex' : 'none';
+      document.getElementById('th-progress').innerText = isRec ? 'Cuotas Cubiertas' : 'Comprobante / Detalle';
+
+      renderStudentsTable();
+    }
+
+    function renderStudentsTable() {
+      const q = document.getElementById('student-search').value.toLowerCase().trim();
+      const tbody = document.getElementById('students-tbody');
+      tbody.innerHTML = '';
+
+      const act = dashboardData.activities.find(a => a.id === selectedActivityId);
+      if (!act) return;
+
+      const isRec = act.type === 'RECURRENTE';
+      const hasRoster = act.require_roster === 1;
+
+      if (hasRoster) {
+        const paidMap = new Map(act.payments.map(p => [p.student_id, p]));
+        const filtered = dashboardData.students.filter(s => s.full_name.toLowerCase().includes(q));
+
+        filtered.forEach((s, idx) => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/40 transition";
+          const pInfo = paidMap.get(s.id);
+          const isPaid = !!pInfo;
+          const isFullyPaid = isPaid && (!isRec || pInfo.amount_bob >= act.amount_bob);
+
+          let statusBadge = isFullyPaid
+            ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">AL DÍA</span>`
+            : (isPaid
+                ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">PARCIAL (${pInfo.amount_bob} Bs.)</span>`
+                : `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">PENDIENTE</span>`);
+
+          let progressCell = '';
+          if (isRec) {
+            const covered = pInfo ? (pInfo.installments_covered || Math.floor(pInfo.amount_bob / act.installment_amount)) : 0;
+            const pct = Math.round((covered / act.installments_count) * 100);
+            progressCell = `
+              <div class="text-center">
+                <span class="font-bold text-white font-mono text-[11px]">${covered} / ${act.installments_count} cuotas</span>
+                <div class="w-24 bg-slate-800 h-1.5 rounded-full mx-auto overflow-hidden mt-1">
+                  <div class="bg-purple-400 h-full rounded-full" style="width: ${pct}%"></div>
+                </div>
+              </div>
+            `;
+          } else {
+            progressCell = `<div class="text-center font-mono text-xs text-slate-400">${pInfo ? (pInfo.ref_number || pInfo.payment_method) : '-'}</div>`;
+          }
+
+          let actionBtn = '';
+          if (isRec) {
+            actionBtn = `<button onclick="openPayRecurringModal(${act.id}, ${s.id}, '${s.full_name}')" class="bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">💰 Registrar Abono</button>`;
+          } else {
+            actionBtn = isPaid
+              ? `<button onclick="togglePayment(${act.id}, ${s.id})" class="text-[11px] text-slate-500 hover:text-rose-400 p-1 transition" title="Desmarcar pago"><i class="fa-solid fa-rotate-left"></i> Desmarcar</button>`
+              : `<button onclick="togglePayment(${act.id}, ${s.id})" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">💵 Pagó en Efectivo</button>`;
+          }
+
+          tr.innerHTML = `
+            <td class="py-3 px-3 text-center text-slate-500 font-mono">${idx + 1}</td>
+            <td class="py-3 px-3 font-semibold text-white">${s.full_name}</td>
+            <td class="py-3 px-3 text-center">${statusBadge}</td>
+            <td class="py-3 px-3">${progressCell}</td>
+            <td class="py-3 px-3 text-slate-300">${pInfo ? pInfo.paid_at : '-'}</td>
+            <td class="py-3 px-3 text-center">${actionBtn}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        // Free collection mode
+        if (act.payments.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">No hay aportes registrados aún en esta cuota libre. Pulsa "Registrar Aporte".</td></tr>`;
+          return;
+        }
+
+        act.payments.forEach((p, idx) => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/40 transition";
+          tr.innerHTML = `
+            <td class="py-3 px-3 text-center text-slate-500 font-mono">${idx + 1}</td>
+            <td class="py-3 px-3 font-semibold text-white">${p.payer_name || 'Aportante Libre'}</td>
+            <td class="py-3 px-3 text-center"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PAGADO (${p.amount_bob} Bs.)</span></td>
+            <td class="py-3 px-3 text-center font-mono text-slate-400">${p.ref_number || p.payment_method}</td>
+            <td class="py-3 px-3 text-slate-300">${p.paid_at}</td>
+            <td class="py-3 px-3 text-center text-slate-500 text-xs">Registrado</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    // Toggle recurring inputs in create modal
+    function toggleRecurringInputs(mode) {
+      const type = document.getElementById(mode === 'create' ? 'act-type-in' : 'edit-act-type').value;
+      const recBox = document.getElementById('create-recurring-fields');
+      const lblAmount = document.getElementById('lbl-amount');
+
+      if (type === 'RECURRENTE') {
+        recBox.classList.remove('hidden');
+        lblAmount.innerText = "Monto Total del Año (Bs.) * (Ej. 200 Bs.)";
+        const m = parseFloat(document.getElementById('act-rec-month-amount').value || 20);
+        const c = parseInt(document.getElementById('act-rec-months-count').value || 10);
+        document.getElementById('act-amount-in').value = m * c;
+      } else {
+        recBox.classList.add('hidden');
+        lblAmount.innerText = "Monto por Alumno (Bs.) *";
+      }
+    }
+
+    // QR Image Renewal Modal
+    function openChangeQrModal() {
+      const act = dashboardData.activities.find(a => a.id === selectedActivityId);
+      if (!act) return;
+      document.getElementById('qr-preview-img').src = act.qr_image_url || '/images/qr_cuenta.png';
+      newQrBase64 = null;
+      document.getElementById('modal-change-qr').classList.remove('hidden');
+    }
+
+    function closeChangeQrModal() {
+      document.getElementById('modal-change-qr').classList.add('hidden');
+    }
+
+    function handleQrFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        newQrBase64 = event.target.result;
+        document.getElementById('qr-preview-img').src = newQrBase64;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveNewQrImage() {
+      if (!newQrBase64) {
+        alert("Por favor selecciona una imagen de tu nuevo código QR.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/directivo/activities/${selectedActivityId}/qr`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ image_base64: newQrBase64 })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("¡Código QR actualizado exitosamente! Los padres ya verán la nueva imagen.");
+          closeChangeQrModal();
+          loadDashboard();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo actualizar'));
+        }
+      } catch (err) {
+        alert("Error de conexión al subir QR");
+      }
+    }
+
+    // Recurring Payment Modal
+    function openPayRecurringModal(actId, studentId, studentName) {
+      const act = dashboardData.activities.find(a => a.id === actId);
+      if (!act) return;
+
+      currentSelectedStudentForRecurring = { actId, studentId, studentName };
+      document.getElementById('modal-rec-student-name').innerText = studentName;
+
+      const pInfo = act.payments.find(p => p.student_id === studentId);
+      const paid = pInfo ? pInfo.amount_bob : 0;
+      const covered = pInfo ? (pInfo.installments_covered || Math.floor(paid / act.installment_amount)) : 0;
+      document.getElementById('modal-rec-status-info').innerText = `Abonado a la fecha: ${paid} Bs. (${covered}/${act.installments_count} cuotas cubiertas)`;
+      document.getElementById('modal-rec-amount').value = act.installment_amount || 20;
+      document.getElementById('modal-rec-hint').innerText = `Cuota mensual fija: ${act.installment_amount} Bs. (ej. 20, 40 o ${act.amount_bob} Bs. por todo el año)`;
+
+      document.getElementById('modal-pay-recurring').classList.remove('hidden');
+    }
+
+    function closePayRecurringModal() {
+      document.getElementById('modal-pay-recurring').classList.add('hidden');
+    }
+
+    async function submitRecurringPayment() {
+      if (!currentSelectedStudentForRecurring) return;
+      const amount = parseFloat(document.getElementById('modal-rec-amount').value);
+      if (!amount || amount <= 0) {
+        alert("Ingresa un monto válido.");
+        return;
+      }
+      const method = document.getElementById('modal-rec-method').value;
+
+      try {
+        const res = await fetch('/api/directivo/payments/recurring', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            activity_id: currentSelectedStudentForRecurring.actId,
+            student_id: currentSelectedStudentForRecurring.studentId,
+            amount_bob: amount,
+            method
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`¡Abono registrado! Total acumulado: ${data.totalPaid} Bs. (${data.installmentsCovered} cuotas cubiertas)`);
+          closePayRecurringModal();
+          loadDashboard();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo registrar'));
+        }
+      } catch (e) {
+        alert("Error de conexión");
+      }
+    }
+
+    async function togglePayment(actId, studentId) {
+      try {
+        const res = await fetch('/api/directivo/payments/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ activity_id: actId, student_id: studentId, method: 'EFECTIVO' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadDashboard();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo actualizar'));
+        }
+      } catch (e) {
+        alert("Error de conexión");
+      }
+    }
+
+    function openCreateActivityModal() {
+      document.getElementById('modal-create-act').classList.remove('hidden');
+    }
+
+    function closeCreateActivityModal() {
+      document.getElementById('modal-create-act').classList.add('hidden');
+    }
+
+    async function handleCreateActivity(e) {
+      e.preventDefault();
+      const type = document.getElementById('act-type-in').value;
+      const requireRoster = document.getElementById('act-roster-in').value;
+      const recMonth = parseFloat(document.getElementById('act-rec-month-amount').value || 0);
+      const recCount = parseInt(document.getElementById('act-rec-months-count').value || 1);
+
+      const payload = {
+        title: document.getElementById('act-title-in').value,
+        type,
+        require_roster: requireRoster,
+        amount_bob: document.getElementById('act-amount-in').value,
+        installment_amount: type === 'RECURRENTE' ? recMonth : document.getElementById('act-amount-in').value,
+        installments_count: type === 'RECURRENTE' ? recCount : 1,
+        deadline_date: document.getElementById('act-date-in').value,
+        description: document.getElementById('act-desc-in').value,
+        bank_name: document.getElementById('act-bank-in').value,
+        account_number: document.getElementById('act-acc-in').value,
+        account_holder: document.getElementById('act-holder-in').value
+      };
+
+      try {
+        const res = await fetch('/api/directivo/activities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("¡Nueva actividad de cobro creada con éxito!");
+          closeCreateActivityModal();
+          document.getElementById('form-new-act').reset();
+          loadDashboard();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo crear'));
+        }
+      } catch (err) {
+        alert("Error de conexión");
+      }
+    }
+
+    function openEditActivityModal() {
+      const act = dashboardData.activities.find(a => a.id === selectedActivityId);
+      if (!act) return;
+
+      document.getElementById('edit-act-id').value = act.id;
+      document.getElementById('edit-act-title').value = act.title;
+      document.getElementById('edit-act-amount').value = act.amount_bob;
+      document.getElementById('edit-act-date').value = act.deadline_date;
+      document.getElementById('edit-act-status').value = act.status || 'ACTIVA';
+      document.getElementById('edit-act-desc').value = act.description || '';
+      document.getElementById('edit-act-bank').value = act.bank_name;
+      document.getElementById('edit-act-acc').value = act.account_number;
+      document.getElementById('edit-act-holder').value = act.account_holder;
+
+      document.getElementById('modal-edit-act').classList.remove('hidden');
+    }
+
+    function closeEditActivityModal() {
+      document.getElementById('modal-edit-act').classList.add('hidden');
+    }
+
+    async function handleEditActivity(e) {
+      e.preventDefault();
+      const actId = document.getElementById('edit-act-id').value;
+      const payload = {
+        title: document.getElementById('edit-act-title').value,
+        amount_bob: document.getElementById('edit-act-amount').value,
+        deadline_date: document.getElementById('edit-act-date').value,
+        status: document.getElementById('edit-act-status').value,
+        description: document.getElementById('edit-act-desc').value,
+        bank_name: document.getElementById('edit-act-bank').value,
+        account_number: document.getElementById('edit-act-acc').value,
+        account_holder: document.getElementById('edit-act-holder').value
+      };
+
+      try {
+        const res = await fetch(`/api/directivo/activities/${actId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("¡Actividad actualizada con éxito!");
+          closeEditActivityModal();
+          loadDashboard();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo actualizar'));
+        }
+      } catch (err) {
+        alert("Error al actualizar actividad");
+      }
+    }
+
+    function openFinancialSummaryModal() {
+      document.getElementById('modal-financial').classList.remove('hidden');
+      fetchDirectivoFinancialSummary();
+    }
+
+    function closeFinancialSummaryModal() {
+      document.getElementById('modal-financial').classList.add('hidden');
+    }
+
+    async function fetchDirectivoFinancialSummary() {
+      const year = document.getElementById('modal-fin-year').value;
+      const month = document.getElementById('modal-fin-month').value;
+      const url = `/api/directivo/financial-summary?year=${year}&month=${month}`;
+
+      try {
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+
+        document.getElementById('modal-fin-collected').innerText = `${data.summary.totalCollected} Bs.`;
+        document.getElementById('modal-fin-target').innerText = `${data.summary.totalTarget} Bs.`;
+        document.getElementById('modal-fin-pending').innerText = `${data.summary.totalPending} Bs.`;
+
+        const container = document.getElementById('modal-fin-activities');
+        container.innerHTML = '';
+        if (data.summary.byActivity.length === 0) {
+          container.innerHTML = `<span class="text-xs text-slate-500">No hay actividades registradas en este periodo.</span>`;
+        } else {
+          data.summary.byActivity.forEach(a => {
+            const div = document.createElement('div');
+            div.className = "p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between";
+            div.innerHTML = `
+              <div>
+                <span class="font-bold text-white text-xs block">${a.title}</span>
+                <span class="text-[10px] text-slate-400">Cuota: ${a.amount_bob} Bs. • ${a.paid_count}/${a.total_students} pagados</span>
+              </div>
+              <div class="text-right">
+                <span class="font-extrabold text-emerald-400 text-sm block">${a.total_collected} Bs.</span>
+                <span class="text-[10px] text-slate-500">Límite: ${a.deadline_date}</span>
+              </div>
+            `;
+            container.appendChild(div);
+          });
+        }
+      } catch (e) {
+        console.error("Error directivo financial:", e);
+      }
+    }
+
+    async function openAddStudentModal() {
+      const name = prompt("Escribe el nombre completo del alumno/a:");
+      if (name && name.trim()) {
+        try {
+          const res = await fetch('/api/directivo/students', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ full_name: name.trim() })
+          });
+          const data = await res.json();
+          if (data.success) loadDashboard();
+        } catch (e) {
+          alert("Error al añadir alumno.");
+        }
+      }
+    }
+
+    async function copyWhatsAppReport() {
+      const act = dashboardData.activities.find(a => a.id === selectedActivityId);
+      if (!act) return;
+
+      const isRec = act.type === 'RECURRENTE';
+      let msg = '';
+
+      if (isRec) {
+        // Recurring fee report
+        const paidMap = new Map(act.payments.map(p => [p.student_id, p]));
+        const full = [];
+        const partial = [];
+        const zero = [];
+
+        dashboardData.students.forEach(s => {
+          const p = paidMap.get(s.id);
+          if (!p) zero.push(s);
+          else if (p.amount_bob >= act.amount_bob) full.push({ s, p });
+          else partial.push({ s, p });
+        });
+
+        msg = `📊 *ESTADO DE CAJA CHICA - ${dashboardData.course.grade_name.toUpperCase()}*
+`;
+        msg += `🏫 *${dashboardData.course.school_name}*
+`;
+        msg += `🎯 Cuota: *${act.title}*
+`;
+        msg += `💰 Plan: *${act.installment_amount} Bs./mes* (${act.installments_count} cuotas - Meta: ${act.amount_bob} Bs.)
+`;
+        msg += `📈 Total Recaudado: *${act.totalCollected} Bs. / ${act.targetAmount} Bs.* (${act.percent}%)
+
+`;
+
+        msg += `✅ *ALUMNOS CON EL AÑO COMPLETO O AL DÍA (${full.length}):*
+`;
+        full.forEach((item, idx) => { msg += `${idx + 1}. ${item.s.full_name} (${item.p.amount_bob} Bs.)
+`; });
+
+        msg += `
+🟡 *ALUMNOS CON PAGOS PARCIALES (${partial.length}):*
+`;
+        partial.forEach((item, idx) => {
+          const covered = item.p.installments_covered || Math.floor(item.p.amount_bob / act.installment_amount);
+          msg += `• ${item.s.full_name}: ${item.p.amount_bob} Bs. (${covered}/${act.installments_count} cuotas)
+`;
+        });
+
+        msg += `
+⏳ *ALUMNOS PENDIENTES (${zero.length}):*
+`;
+        zero.forEach((s, idx) => { msg += `• ${s.full_name}
+`; });
+
+      } else {
+        // Punctual fee report
+        const paidMap = new Map(act.payments.map(p => [p.student_id, p]));
+        const paid = dashboardData.students.filter(s => paidMap.has(s.id));
+        const pending = dashboardData.students.filter(s => !paidMap.has(s.id));
+
+        msg = `📊 *REPORTE DE CUOTAS - ${dashboardData.course.grade_name.toUpperCase()}*
+`;
+        msg += `🏫 *${dashboardData.course.school_name}*
+`;
+        msg += `🎯 Actividad: *${act.title}*
+`;
+        msg += `💰 Cuota: *${act.amount_bob} Bs.* por alumno
+`;
+        msg += `📈 Recaudado: *${act.totalCollected} Bs. / ${act.targetAmount} Bs.* (${act.percent}%)
+`;
+        msg += `📅 Fecha límite: ${act.deadline_date}
+
+`;
+
+        msg += `✅ *ALUMNOS AL DÍA (${paid.length}/${dashboardData.students.length}):*
+`;
+        paid.forEach((s, idx) => { msg += `${idx + 1}. ${s.full_name}
+`; });
+
+        msg += `
+⏳ *ALUMNOS PENDIENTES (${pending.length}):*
+`;
+        pending.forEach((s, idx) => { msg += `${idx + 1}. ${s.full_name}
+`; });
+      }
+
+      msg += `
+💳 *Datos para transferir:*
+${act.bank_name} - ${act.account_number}
+Titular: ${act.account_holder}
+`;
+      msg += `📲 Enviar comprobante al WhatsApp de la directiva.
+`;
+      msg += `_Reporte oficial generado automáticamente._`;
+
+      await navigator.clipboard.writeText(msg);
+      alert("¡Reporte copiado con éxito! Ya puedes pegarlo en el grupo de WhatsApp del curso.");
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('cuotas_token');
+      localStorage.removeItem('cuotas_user');
+      window.location.href = '/';
+    }
+
+    
+    function exportLetterPdfReport() {
+      if (!dashboardData || !selectedActivityId) return;
+      const act = dashboardData.activities.find(a => a.id === selectedActivityId);
+      if (!act) return;
+
+      const course = dashboardData.course;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('es-BO', { day: '2-digit', month: 'long', year: 'numeric' });
+      const timeStr = now.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
+
+      const paidMap = new Map(act.payments.map(p => [p.student_id, p]));
+      const isRec = act.type === 'RECURRENTE';
+
+      let tableRows = '';
+      dashboardData.students.forEach((s, idx) => {
+        const p = paidMap.get(s.id);
+        const isPaid = !!p;
+        const isFullyPaid = isPaid && (!isRec || p.amount_bob >= act.amount_bob);
+
+        let statusText = isFullyPaid ? 'AL DÍA' : (isPaid ? 'PARCIAL' : 'PENDIENTE');
+        let statusColor = isFullyPaid ? '#059669' : (isPaid ? '#d97706' : '#dc2626');
+        let amountText = isPaid ? `${p.amount_bob} Bs.` : '0 Bs.';
+        let dateText = isPaid ? p.paid_at : '-';
+        let refText = isPaid ? (p.ref_number || p.payment_method || 'Abonado') : '-';
+
+        tableRows += `
+          <tr style="border-bottom: 1px solid #e2e8f0; font-size: 11px;">
+            <td style="padding: 6px 8px; text-align: center; color: #64748b;">${idx + 1}</td>
+            <td style="padding: 6px 8px; font-weight: 600; color: #1e293b;">${s.full_name}</td>
+            <td style="padding: 6px 8px; text-align: center; font-weight: bold; color: ${statusColor};">${statusText}</td>
+            <td style="padding: 6px 8px; text-align: right; font-family: monospace;">${amountText}</td>
+            <td style="padding: 6px 8px; text-align: center; color: #475569;">${dateText}</td>
+            <td style="padding: 6px 8px; text-align: center; font-family: monospace; font-size: 10px; color: #0284c7;">${refText}</td>
+          </tr>
+        `;
+      });
+
+      const printHtml = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Informe Oficial - ${act.title}</title>
+  <style>
+    @page {
+      size: letter portrait;
+      margin: 15mm 15mm 15mm 15mm;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #0f172a;
+      background: #ffffff;
+      margin: 0;
+      padding: 0;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .header {
+      border-bottom: 2px solid #059669;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .title-area h1 {
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      color: #065f46;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .title-area h2 {
+      margin: 0 0 3px 0;
+      font-size: 14px;
+      color: #1e293b;
+    }
+    .title-area p {
+      margin: 0;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .badge-report {
+      background: #ecfdf5;
+      border: 1px solid #10b981;
+      color: #047857;
+      padding: 6px 12px;
+      border-radius: 8px;
+      text-align: right;
+      font-size: 11px;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .kpi-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+    .kpi-label {
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .kpi-value {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th {
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 10px;
+      padding: 8px;
+      border-bottom: 2px solid #cbd5e1;
+    }
+    .signatures {
+      margin-top: 35px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      text-align: center;
+      page-break-inside: avoid;
+    }
+    .sig-line {
+      border-top: 1px solid #475569;
+      margin-top: 45px;
+      padding-top: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      color: #1e293b;
+    }
+    .sig-sub {
+      font-size: 10px;
+      color: #64748b;
+    }
+    .footer-note {
+      margin-top: 25px;
+      border-top: 1px dashed #cbd5e1;
+      padding-top: 8px;
+      font-size: 9px;
+      color: #94a3b8;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title-area">
+      <h1>${course.school_name}</h1>
+      <h2>Curso: ${course.grade_name} • Gestión 2026</h2>
+      <p>Santa Cruz de la Sierra, Bolivia • Control de Cuotas con IA</p>
+    </div>
+    <div class="badge-report">
+      <strong>INFORME OFICIAL</strong><br>
+      Fecha: ${dateStr}<br>
+      Hora: ${timeStr}
+    </div>
+  </div>
+
+  <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 10px 12px; margin-bottom: 14px; border-radius: 4px;">
+    <h3 style="margin: 0 0 3px 0; font-size: 14px; color: #065f46;">Actividad: ${act.title}</h3>
+    <p style="margin: 0; font-size: 11px; color: #334155;">${act.description || 'Actividad y cobro de cuota oficial convocada por la mesa directiva.'}</p>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi-box">
+      <div class="kpi-label">Cuota por Alumno</div>
+      <div class="kpi-value" style="color: #b45309;">${act.amount_bob} Bs.</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-label">Total Recaudado</div>
+      <div class="kpi-value" style="color: #059669;">${act.totalCollected} Bs.</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-label">Alumnos al Día</div>
+      <div class="kpi-value" style="color: #0284c7;">${act.paidCount} / ${dashboardData.students.length} (${act.percent}%)</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-label">Alumnos Pendientes</div>
+      <div class="kpi-value" style="color: #dc2626;">${act.pendingCount}</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 30px; text-align: center;">#</th>
+        <th style="text-align: left;">Nombre Completo del Alumno</th>
+        <th style="width: 90px; text-align: center;">Estado</th>
+        <th style="width: 80px; text-align: right;">Abonado</th>
+        <th style="width: 90px; text-align: center;">Fecha</th>
+        <th style="width: 110px; text-align: center;">Referencia / Medio</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${tableRows}
+    </tbody>
+  </table>
+
+  <div class="signatures">
+    <div>
+      <div class="sig-line">Presidenta de Curso</div>
+      <div class="sig-sub">Mesa Directiva</div>
+    </div>
+    <div>
+      <div class="sig-line">Tesorera de Curso</div>
+      <div class="sig-sub">Control de Fondos</div>
+    </div>
+    <div>
+      <div class="sig-line">V° B° Super Administrador</div>
+      <div class="sig-sub">Validación Central</div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Documento emitido por la Plataforma Digital de Cobro de Cuotas Escolares con IA • Formato Carta Oficial para Asambleas de Padres.
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    };
+  <\/script>
+</body>
+</html>
+      `;
+
+      const printWin = window.open('', '_blank');
+      printWin.document.open();
+      printWin.document.write(printHtml);
+      printWin.document.close();
+    }
+
+
+    checkAuth();
+  </script>
+</body>
+</html>

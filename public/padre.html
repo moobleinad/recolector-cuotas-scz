@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Padres | Control de Cuotas Escolares</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b1120; color: #f8fafc; }
+  </style>
+</head>
+<body class="min-h-screen pb-16 antialiased">
+
+  <!-- ROLE SWITCHER BANNER (IF USER HAS MULTIPLE ROLES) -->
+  <div id="role-switcher-banner" class="hidden bg-gradient-to-r from-purple-900/90 via-slate-900 to-slate-900 border-b border-purple-500/30 px-4 py-2 text-xs">
+    <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2 text-purple-200">
+        <i class="fa-solid fa-arrows-spin text-purple-400"></i>
+        <span>Tienes múltiples roles habilitados. Cambia de panel en 1 clic:</span>
+      </div>
+      <div id="role-switcher-buttons" class="flex items-center gap-2">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Navigation -->
+  <nav class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold text-lg shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-white text-base leading-tight block">Portal de Padres de Familia</span>
+          <span class="text-xs text-emerald-400 font-medium" id="parent-greeting">Bienvenido...</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <a href="/simulador_ia.html" target="_blank" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow transition">
+          <i class="fa-brands fa-whatsapp text-sm"></i> <span class="hidden sm:inline">Enviar Recibo</span>
+        </a>
+        <button onclick="handleLogout()" class="text-xs bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 px-3 py-1.5 rounded-xl flex items-center gap-1 transition">
+          <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">Salir</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 pt-6 space-y-6">
+
+    <!-- CHILD SELECTION & HIGHLIGHT CARD -->
+    <div class="bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-3xl p-6 shadow-2xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-1">
+            <i class="fa-solid fa-child-reaching mr-1"></i> Estado de tu Estudiante Representado
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white" id="child-name">Cargando datos...</h1>
+          <p class="text-slate-300 text-xs sm:text-sm mt-1" id="child-school-course">Colegio • Curso</p>
+        </div>
+
+        <!-- Student General Badge -->
+        <div id="student-status-badge" class="self-start sm:self-center px-4 py-2 rounded-2xl text-xs font-extrabold border shadow-lg flex items-center gap-2">
+          <i class="fa-solid fa-spinner fa-spin"></i> Consultando...
+        </div>
+      </div>
+
+      <!-- Multiple children tabs if parent has more than 1 -->
+      <div id="children-tabs-container" class="hidden pt-2 border-t border-slate-800/80 flex flex-wrap gap-2">
+        <span class="text-[11px] text-slate-400 font-semibold self-center mr-1">Tus hijos:</span>
+        <div id="children-pills" class="flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <!-- ACTIVE ACTIVITIES SELECTOR (Si el curso tiene varias) -->
+    <div id="activities-selector-box" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2">
+      <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+        <i class="fa-solid fa-layer-group text-emerald-400 mr-1"></i> Selecciona la Cuota o Actividad a Consultar:
+      </span>
+      <div id="activities-pills" class="flex flex-wrap gap-2 pt-1">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- CURRENT SELECTED ACTIVITY HERO -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <div class="space-y-1.5 max-w-xl">
+          <div class="flex items-center gap-2">
+            <span id="act-type-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              PUNTUAL
+            </span>
+            <span class="text-xs text-slate-400" id="act-deadline-text">Fecha límite: -</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight" id="act-title">Cargando actividad...</h2>
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed" id="act-desc">-</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-right min-w-[130px]">
+            <span class="text-[10px] text-slate-400 font-semibold uppercase block">Monto de la Cuota</span>
+            <span class="text-2xl font-black text-amber-400" id="act-amount">0 Bs.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERSONAL PAYMENT CARD FOR THIS ACTIVITY -->
+      <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] text-slate-400 uppercase font-bold block">Tu Estado de Pago en esta Cuota:</span>
+            <div class="text-lg font-bold text-white mt-0.5" id="personal-status-text">Revisando registro...</div>
+          </div>
+          <div id="personal-status-pill">
+            <!-- Badge rendered by JS -->
+          </div>
+        </div>
+
+        <!-- RECURRING BREAKDOWN IF APPLICABLE -->
+        <div id="recurring-progress-box" class="hidden pt-3 border-t border-slate-800 space-y-2">
+          <div class="flex justify-between text-xs font-semibold">
+            <span class="text-slate-300">Cuotas mensuales cubiertas:</span>
+            <span class="text-purple-300 font-bold" id="rec-covered-text">0 de 10 cuotas (0 Bs.)</span>
+          </div>
+          <div class="w-full bg-slate-900 rounded-full h-3 p-0.5 border border-slate-800">
+            <div id="rec-progress-fill" class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <span class="text-[11px] text-slate-400 block" id="rec-hint-text">Puedes abonar cuotas individuales (20 Bs.) o pagar el total del año de una sola vez.</span>
+        </div>
+      </div>
+
+      <!-- COURSE PROGRESS BAR -->
+      <div class="space-y-2">
+        <div class="flex justify-between text-xs font-bold">
+          <span class="text-slate-300">Recaudación General del Curso:</span>
+          <span class="text-emerald-400 font-mono" id="course-progress-percent">0%</span>
+        </div>
+        <div class="w-full bg-slate-950 rounded-full h-3 p-0.5 border border-slate-800">
+          <div id="course-progress-fill" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-[11px] text-slate-400">
+          <span id="course-paid-count">0 de 0 alumnos al día</span>
+          <span id="course-collected-amount">0 Bs. recaudados</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENT INSTRUCTIONS & QR CODE (BANCO GANADERO) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl grid md:grid-cols-3 gap-6 items-center">
+      <div class="md:col-span-1 text-center space-y-2">
+        <span class="text-xs font-bold text-slate-300 block">QR Simple Oficial</span>
+        <div class="bg-white p-3 rounded-2xl inline-block shadow-lg border-2 border-emerald-500/40">
+          <img id="qr-img" src="/images/qr_cuenta.png" alt="QR Cuenta" class="w-48 h-auto mx-auto rounded-lg object-contain max-h-52">
+        </div>
+        <span class="text-[10px] text-slate-400 block">Escanea desde tu app bancaria de cualquier banco de Bolivia</span>
+      </div>
+
+      <div class="md:col-span-2 space-y-4 text-xs">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-building-columns text-emerald-400"></i> Datos para Pago Bancario
+          </h3>
+          <p class="text-slate-400 text-xs">Transfiere mediante QR Simple o abono directo a la cuenta oficial del curso.</p>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Banco:</span>
+            <span class="font-bold text-white" id="bank-name">Banco Ganadero</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Número de Cuenta:</span>
+            <span class="font-mono text-emerald-400 font-bold" id="bank-acc">CA 1310325959</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Titular de Cuenta:</span>
+            <span class="font-semibold text-slate-200" id="bank-holder">SIMONS SIMONS DANIEL BATHAL</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Presidenta del Curso:</span>
+            <span class="text-slate-200 font-medium" id="pres-name">-</span>
+          </div>
+        </div>
+
+        <div class="pt-1 space-y-2">
+          <a href="/simulador_ia.html" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm transition">
+            <i class="fa-brands fa-whatsapp text-lg"></i>
+            <span>Enviar Comprobante al WhatsApp con IA</span>
+          </a>
+          <p class="text-[11px] text-slate-400 text-center leading-tight">
+            Envía la foto o captura de tu comprobante al robot con IA. Se valida automáticamente y se marca al alumno al día.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLASSMATES ROSTER / TRANSPARENCY TABLE -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-user text-emerald-400"></i> Planilla de Transparencia del Curso
+          </h3>
+          <p class="text-xs text-slate-400">Consulta el estado de todos los alumnos del curso en esta actividad.</p>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button onclick="setRosterFilter('ALL')" id="flt-all" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold">Todos</button>
+          <button onclick="setRosterFilter('PAID')" id="flt-paid" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Pagados</button>
+          <button onclick="setRosterFilter('PENDING')" id="flt-pending" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">Pendientes</button>
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div>
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
+          <input type="text" id="roster-search" oninput="renderClassmatesRoster()" placeholder="Buscar compañero/a por nombre..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+            <tr>
+              <th class="py-3 px-3.5 text-center w-12">#</th>
+              <th class="py-3 px-3.5">Nombre del Alumno</th>
+              <th class="py-3 px-3.5 text-center">Estado</th>
+              <th class="py-3 px-3.5 text-right">Fecha de Abono</th>
+              <th class="py-3 px-3.5 text-right">Referencia</th>
+            </tr>
+          </thead>
+          <tbody id="roster-tbody" class="divide-y divide-slate-800/80">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const token = localStorage.getItem('cuotas_token');
+    let parentDashboard = null;
+    let selectedStudentId = null;
+    let selectedActivityId = null;
+    let publicCourseData = null;
+    let currentRosterFilter = 'ALL';
+
+    async function checkAuthAndLoad() {
+      if (!token) {
+        window.location.href = '/';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/padre/dashboard', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.status === 401 || res.status === 403) {
+          window.location.href = '/';
+          return;
+        }
+
+        parentDashboard = await res.json();
+        setupRoleSwitcher(parentDashboard.parent.roles);
+        initDashboard();
+      } catch (err) {
+        console.error("Error loading padre dashboard:", err);
+      }
+    }
+
+    function setupRoleSwitcher(roles) {
+      if (!roles || roles.length <= 1) return;
+
+      const banner = document.getElementById('role-switcher-banner');
+      const container = document.getElementById('role-switcher-buttons');
+      banner.classList.remove('hidden');
+      container.innerHTML = '';
+
+      if (roles.includes('SUPER_ADMIN')) {
+        const b = document.createElement('a');
+        b.href = '/admin-maestro.html';
+        b.className = 'px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition flex items-center gap-1';
+        b.innerHTML = '<i class="fa-solid fa-crown text-[10px]"></i> Panel Super Admin';
+        container.appendChild(b);
+      }
+
+      if (roles.includes('DIRECTIVO')) {
+        const b = document.createElement('a');
+        b.href = '/directivo.html';
+        b.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold transition flex items-center gap-1';
+        b.innerHTML = '<i class="fa-solid fa-user-tie text-[10px]"></i> Panel Directivo';
+        container.appendChild(b);
+      }
+    }
+
+    function initDashboard() {
+      const p = parentDashboard.parent;
+      document.getElementById('parent-greeting').innerText = `${p.name} • Tutor`;
+
+      // Setup students
+      if (parentDashboard.students && parentDashboard.students.length > 0) {
+        selectedStudentId = parentDashboard.students[0].id;
+
+        if (parentDashboard.students.length > 1) {
+          const cBox = document.getElementById('children-tabs-container');
+          const pills = document.getElementById('children-pills');
+          cBox.classList.remove('hidden');
+          pills.innerHTML = '';
+
+          parentDashboard.students.forEach(st => {
+            const btn = document.createElement('button');
+            const isSel = st.id === selectedStudentId;
+            btn.className = isSel
+              ? 'px-3 py-1 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow'
+              : 'px-3 py-1 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs border border-slate-700';
+            btn.innerText = st.full_name;
+            btn.onclick = () => { selectedStudentId = st.id; renderDashboardViews(); };
+            pills.appendChild(btn);
+          });
+        }
+      }
+
+      // Setup activities
+      if (parentDashboard.activities && parentDashboard.activities.length > 0) {
+        selectedActivityId = parentDashboard.activities[0].id;
+        renderActivitiesPills();
+      }
+
+      renderDashboardViews();
+    }
+
+    function renderActivitiesPills() {
+      const pillsContainer = document.getElementById('activities-pills');
+      pillsContainer.innerHTML = '';
+
+      if (!parentDashboard.activities || parentDashboard.activities.length === 0) {
+        pillsContainer.innerHTML = '<span class="text-xs text-slate-500">No hay actividades activas en este curso por el momento.</span>';
+        return;
+      }
+
+      parentDashboard.activities.forEach(act => {
+        const isSel = act.id === selectedActivityId;
+        const btn = document.createElement('button');
+        btn.onclick = () => { selectedActivityId = act.id; renderActivitiesPills(); renderDashboardViews(); };
+        btn.className = isSel
+          ? 'px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-md border border-emerald-500 flex items-center gap-1.5'
+          : 'px-3.5 py-2 rounded-xl bg-slate-950 text-slate-300 hover:text-white font-medium text-xs border border-slate-800 transition flex items-center gap-1.5';
+        
+        const isRec = act.type === 'RECURRENTE';
+        btn.innerHTML = `
+          ${isRec ? '<i class="fa-solid fa-repeat text-purple-300 text-[10px]"></i>' : '<i class="fa-solid fa-tag text-cyan-300 text-[10px]"></i>'}
+          <span>${act.title}</span>
+          <span class="ml-1 text-[10px] ${isSel ? 'text-amber-200' : 'text-amber-400 font-bold'}">${act.amount_bob} Bs.</span>
+        `;
+        pillsContainer.appendChild(btn);
+      });
+    }
+
+    async function renderDashboardViews() {
+      const student = parentDashboard.students.find(s => s.id === selectedStudentId) || parentDashboard.students[0];
+      const act = parentDashboard.activities.find(a => a.id === selectedActivityId) || parentDashboard.activities[0];
+
+      if (student) {
+        document.getElementById('child-name').innerText = student.full_name;
+        document.getElementById('child-school-course').innerText = `${student.school_name || 'Colegio'} • ${student.grade_name || 'Curso'}`;
+      }
+
+      if (!act) return;
+
+      document.getElementById('act-title').innerText = act.title;
+      document.getElementById('act-desc').innerText = act.description || 'Actividad oficial convocada por la mesa directiva.';
+      document.getElementById('act-amount').innerText = `${act.amount_bob} Bs.`;
+      document.getElementById('act-deadline-text').innerText = `Límite: ${act.deadline_date || '-'}`;
+      document.getElementById('bank-name').innerText = act.bank_name || 'Banco Ganadero';
+      document.getElementById('bank-acc').innerText = act.account_number || 'CA 1310325959';
+      document.getElementById('bank-holder').innerText = act.account_holder || 'SIMONS SIMONS DANIEL BATHAL';
+      document.getElementById('pres-name').innerText = student ? (student.president_name || 'Mesa Directiva') : 'Mesa Directiva';
+
+      if (act.qr_image_url) {
+        document.getElementById('qr-img').src = act.qr_image_url;
+      }
+
+      const isRec = act.type === 'RECURRENTE';
+      const typeBadge = document.getElementById('act-type-badge');
+      if (isRec) {
+        typeBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30';
+        typeBadge.innerText = `RECURRENTE (${act.installments_count} x ${act.installment_amount} Bs.)`;
+      } else {
+        typeBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-500/20 text-blue-300 border border-blue-500/30';
+        typeBadge.innerText = 'CUOTA PUNTUAL';
+      }
+
+      // Check student status in this activity
+      const stStatus = act.studentStatuses ? act.studentStatuses.find(st => st.student_id === (student ? student.id : 0)) : null;
+      const topBadge = document.getElementById('student-status-badge');
+      const personalText = document.getElementById('personal-status-text');
+      const personalPill = document.getElementById('personal-status-pill');
+      const recBox = document.getElementById('recurring-progress-box');
+
+      if (stStatus && stStatus.status === 'PAGADO') {
+        topBadge.className = 'self-start sm:self-center px-4 py-2 rounded-2xl text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg flex items-center gap-2';
+        topBadge.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> CUOTA AL DÍA';
+
+        personalText.innerHTML = `Comprobante Registrado: <span class="font-mono text-emerald-400 font-bold">${stStatus.ref_number || 'Abono Verificado'}</span>`;
+        personalPill.innerHTML = `<span class="px-3 py-1 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PAGADO (${stStatus.paid_at || 'Al día'})</span>`;
+      } else if (stStatus && stStatus.status === 'PARCIAL') {
+        topBadge.className = 'self-start sm:self-center px-4 py-2 rounded-2xl text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-lg flex items-center gap-2';
+        topBadge.innerHTML = `<i class="fa-solid fa-hourglass-half text-amber-400"></i> PAGO PARCIAL (${stStatus.amount_paid} Bs.)`;
+
+        personalText.innerHTML = `Abono registrado: <span class="font-bold text-amber-400">${stStatus.amount_paid} Bs.</span> de ${act.amount_bob} Bs.`;
+        personalPill.innerHTML = `<span class="px-3 py-1 rounded-xl text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">ABONO PARCIAL</span>`;
+      } else {
+        topBadge.className = 'self-start sm:self-center px-4 py-2 rounded-2xl text-xs font-extrabold bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-lg flex items-center gap-2';
+        topBadge.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-400"></i> PENDIENTE DE PAGO';
+
+        personalText.innerHTML = `Cuota pendiente por abonar: <span class="font-bold text-amber-400">${act.amount_bob} Bs.</span>`;
+        personalPill.innerHTML = `<span class="px-3 py-1 rounded-xl text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">PENDIENTE</span>`;
+      }
+
+      if (isRec) {
+        recBox.classList.remove('hidden');
+        const covered = stStatus ? stStatus.installments_covered : 0;
+        const totalInst = act.installments_count || 10;
+        const pct = Math.round((covered / totalInst) * 100);
+        document.getElementById('rec-covered-text').innerText = `${covered} de ${totalInst} cuotas (${covered * (act.installment_amount || 20)} Bs. de ${act.amount_bob} Bs.)`;
+        document.getElementById('rec-progress-fill').style.width = `${pct}%`;
+      } else {
+        recBox.classList.add('hidden');
+      }
+
+      // Load Course Roster for transparency
+      if (student && student.course_slug) {
+        loadCourseRoster(student.course_slug, act.id);
+      }
+    }
+
+    async function loadCourseRoster(slug, actId) {
+      try {
+        const res = await fetch(`/api/public/course/${slug}?activity_id=${actId}`);
+        publicCourseData = await res.json();
+
+        // Update overall course metrics
+        if (publicCourseData.metrics) {
+          const m = publicCourseData.metrics;
+          document.getElementById('course-progress-percent').innerText = `${m.percent}%`;
+          document.getElementById('course-progress-fill').style.width = `${m.percent}%`;
+          document.getElementById('course-paid-count').innerText = `${m.paidCount} de ${m.totalStudents} alumnos al día`;
+          document.getElementById('course-collected-amount').innerText = `${m.totalCollected} Bs. recaudados`;
+
+          document.getElementById('flt-all').innerText = `Todos (${m.totalStudents})`;
+          document.getElementById('flt-paid').innerText = `Pagados (${m.paidCount})`;
+          document.getElementById('flt-pending').innerText = `Pendientes (${m.pendingCount})`;
+        }
+
+        renderClassmatesRoster();
+      } catch (err) {
+        console.error("Error loading roster:", err);
+      }
+    }
+
+    function setRosterFilter(f) {
+      currentRosterFilter = f;
+      ['all', 'paid', 'pending'].forEach(k => {
+        const btn = document.getElementById(`flt-${k}`);
+        if (k.toUpperCase() === f) {
+          btn.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-white';
+        }
+      });
+      renderClassmatesRoster();
+    }
+
+    function renderClassmatesRoster() {
+      if (!publicCourseData || !publicCourseData.students) return;
+      const q = document.getElementById('roster-search').value.toLowerCase().trim();
+      const tbody = document.getElementById('roster-tbody');
+      tbody.innerHTML = '';
+
+      let list = publicCourseData.students.filter(s => {
+        const match = s.full_name.toLowerCase().includes(q);
+        if (!match) return false;
+        if (currentRosterFilter === 'PAID') return s.status === 'PAGADO';
+        if (currentRosterFilter === 'PENDING') return s.status === 'PENDIENTE';
+        return true;
+      });
+
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-500">No se encontraron alumnos con ese criterio.</td></tr>`;
+        return;
+      }
+
+      list.forEach((s, idx) => {
+        const tr = document.createElement('tr');
+        const isMyChild = selectedStudentId && s.id === selectedStudentId;
+        tr.className = isMyChild ? 'bg-emerald-950/40 border-l-4 border-emerald-500 font-bold' : 'hover:bg-slate-800/40 transition';
+
+        let badge = s.status === 'PAGADO'
+          ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><i class="fa-solid fa-circle-check text-[9px]"></i> PAGADO</span>`
+          : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30"><i class="fa-solid fa-clock text-[9px]"></i> PENDIENTE</span>`;
+
+        tr.innerHTML = `
+          <td class="py-3 px-3.5 text-center text-slate-500 font-mono">${idx + 1}</td>
+          <td class="py-3 px-3.5 text-white flex items-center gap-2">
+            <span>${s.full_name}</span>
+            ${isMyChild ? '<span class="text-[10px] bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-full font-extrabold uppercase">Tu Hijo</span>' : ''}
+          </td>
+          <td class="py-3 px-3.5 text-center">${badge}</td>
+          <td class="py-3 px-3.5 text-right text-slate-400 font-medium">${s.paid_at || '-'}</td>
+          <td class="py-3 px-3.5 text-right font-mono text-emerald-400">${s.ref_number || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('cuotas_token');
+      localStorage.removeItem('cuotas_user');
+      window.location.href = '/';
+    }
+
+    window.addEventListener('DOMContentLoaded', checkAuthAndLoad);
+  </script>
+</body>
+</html>

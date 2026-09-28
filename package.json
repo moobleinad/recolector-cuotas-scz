@@ -1,0 +1,16 @@
+{
+  "name": "recolector_cuotas_colegio_scz",
+  "version": "1.0.0",
+  "description": "Sistema de Recoleccion de Cuotas Escolares con IA y WhatsApp para Colegios en Santa Cruz",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^4.22.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
