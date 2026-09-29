@@ -172,9 +172,30 @@ function hashPassword(password) {
   return crypto.createHash('sha256').update(password + AUTH_SALT).digest('hex');
 }
 
-// Ensure default users have correct roles array and seed padre account
+// Ensure default users have correct roles array and seed accounts
 try {
-  db.prepare('UPDATE users SET roles = ? WHERE email = ?').run(JSON.stringify(["SUPER_ADMIN", "DIRECTIVO", "PADRE"]), 'admin@cuotas.bo');
+  // Super Admin: danielbsimons@gmail.com / Moob1986.
+  const adminEmail = 'danielbsimons@gmail.com';
+  const adminHash = hashPassword('Moob1986.');
+  const adminRoles = JSON.stringify(["SUPER_ADMIN", "DIRECTIVO", "PADRE"]);
+  
+  const superAdmin = db.prepare('SELECT id FROM users WHERE email = ?').get(adminEmail);
+  if (!superAdmin) {
+    db.prepare(`
+      INSERT INTO users (name, email, password_hash, role, roles, phone, status, created_at)
+      VALUES ('Daniel Simons', ?, ?, 'SUPER_ADMIN', ?, '77123456', 'ACTIVO', ?)
+    `).run(adminEmail, adminHash, adminRoles, new Date().toISOString());
+  } else {
+    db.prepare('UPDATE users SET password_hash = ?, role = "SUPER_ADMIN", roles = ?, status = "ACTIVO" WHERE email = ?')
+      .run(adminHash, adminRoles, adminEmail);
+  }
+
+  // Backup admin@cuotas.bo
+  const oldAdmin = db.prepare('SELECT id FROM users WHERE email = ?').get('admin@cuotas.bo');
+  if (oldAdmin) {
+    db.prepare('UPDATE users SET password_hash = ?, roles = ? WHERE id = ?').run(adminHash, adminRoles, oldAdmin.id);
+  }
+
   db.prepare('UPDATE users SET roles = ? WHERE email = ?').run(JSON.stringify(["DIRECTIVO", "PADRE"]), 'carmen@colegiosantacruz.bo');
 
   const padreExists = db.prepare('SELECT id FROM users WHERE email = ?').get('padre@cuotas.bo');

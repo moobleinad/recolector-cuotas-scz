@@ -68,45 +68,48 @@
         </div>
         <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Acceso Centralizado</h1>
         <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
-          Ingresa con tu correo y contraseña para ver tu panel correspondiente: <strong class="text-slate-200">Padre de Familia</strong>, <strong class="text-slate-200">Directivo</strong> o <strong class="text-slate-200">Super Administrador</strong>.
+          Ingresa con tu correo y contraseña para ver tu panel correspondiente: <strong class="text-slate-200">Super Administrador</strong>, <strong class="text-slate-200">Directivo</strong>, <strong class="text-slate-200">Profesor</strong>, <strong class="text-slate-200">Padre de Familia</strong> o <strong class="text-slate-200">Alumno</strong>.
         </p>
       </div>
 
-      <!-- QUICK TEST ACCESS BUTTONS -->
-      <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800/80 space-y-2">
-        <span class="text-[11px] text-slate-400 font-semibold block text-center">
-          ⚡ Cuentas de demostración (Clic para rellenar rápido):
-        </span>
+      <!-- QUICK TEST ACCESS BUTTONS (5 PERFILES DEL SISTEMA) -->
+      <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-amber-400 font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-bolt"></i> Cuentas de demostración (Clic para rellenar rápido):
+          </span>
+          <span class="text-[10px] text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-full font-semibold">5 Perfiles</span>
+        </div>
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-          <!-- ADMIN -->
-          <button onclick="fillLogin('admin@cuotas.bo', 'admin123')" class="bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
-            <i class="fa-solid fa-crown text-sm mb-1 text-amber-400"></i>
-            <span class="font-bold">Super Admin</span>
-            <span class="text-[10px] text-slate-400">(Posee los 3 roles)</span>
+          <!-- SUPER ADMIN -->
+          <button type="button" onclick="fillLogin('danielbsimons@gmail.com', 'Moob1986.')" class="bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 hover:border-amber-400 p-2.5 rounded-xl text-center transition flex flex-col items-center group shadow">
+            <i class="fa-solid fa-crown text-base mb-1 text-amber-400 group-hover:scale-110 transition"></i>
+            <span class="font-extrabold text-[11px]">Super Admin</span>
+            <span class="text-[9px] text-slate-400">Control Maestro</span>
           </button>
           <!-- DIRECTIVO -->
-          <button onclick="fillLogin('carmen@colegiosantacruz.bo', 'carmen123')" class="bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-emerald-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
-            <i class="fa-solid fa-user-tie text-sm mb-1 text-emerald-400"></i>
-            <span class="font-bold">Directivo</span>
-            <span class="text-[10px] text-slate-400">Presidenta 3ro B</span>
-          </button>
-          <!-- PADRE -->
-          <button onclick="fillLogin('padre@cuotas.bo', 'padre123')" class="bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
-            <i class="fa-solid fa-users text-sm mb-1 text-cyan-400"></i>
-            <span class="font-bold">Padre</span>
-            <span class="text-[10px] text-slate-400">Tutor</span>
+          <button type="button" onclick="fillLogin('carmen@colegiosantacruz.bo', 'carmen123')" class="bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-emerald-500/40 hover:border-emerald-400 p-2.5 rounded-xl text-center transition flex flex-col items-center group shadow">
+            <i class="fa-solid fa-user-tie text-base mb-1 text-emerald-400 group-hover:scale-110 transition"></i>
+            <span class="font-extrabold text-[11px]">Directivo</span>
+            <span class="text-[9px] text-slate-400">Presidenta 3ro B</span>
           </button>
           <!-- PROFESOR -->
-          <button onclick="fillLogin('profesor@colegiosantacruz.bo', 'profe123')" class="bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-indigo-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
-            <i class="fa-solid fa-chalkboard-user text-sm mb-1 text-indigo-400"></i>
-            <span class="font-bold">Profesor</span>
-            <span class="text-[10px] text-slate-400">Docente</span>
+          <button type="button" onclick="fillLogin('profesor@colegiosantacruz.bo', 'profe123')" class="bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-indigo-500/40 hover:border-indigo-400 p-2.5 rounded-xl text-center transition flex flex-col items-center group shadow">
+            <i class="fa-solid fa-chalkboard-user text-base mb-1 text-indigo-400 group-hover:scale-110 transition"></i>
+            <span class="font-extrabold text-[11px]">Profesor</span>
+            <span class="text-[9px] text-slate-400">Docente</span>
+          </button>
+          <!-- PADRE -->
+          <button type="button" onclick="fillLogin('padre@cuotas.bo', 'padre123')" class="bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 p-2.5 rounded-xl text-center transition flex flex-col items-center group shadow">
+            <i class="fa-solid fa-users text-base mb-1 text-cyan-400 group-hover:scale-110 transition"></i>
+            <span class="font-extrabold text-[11px]">Padre</span>
+            <span class="text-[9px] text-slate-400">Tutor Alumno</span>
           </button>
           <!-- ALUMNO -->
-          <button onclick="fillLogin('alumno@colegiosantacruz.bo', 'alumno123')" class="bg-slate-900 hover:bg-slate-800 text-teal-300 border border-teal-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
-            <i class="fa-solid fa-graduation-cap text-sm mb-1 text-teal-400"></i>
-            <span class="font-bold">Alumno</span>
-            <span class="text-[10px] text-slate-400">Estudiante</span>
+          <button type="button" onclick="fillLogin('alumno@colegiosantacruz.bo', 'alumno123')" class="bg-slate-900 hover:bg-slate-800 text-teal-300 border border-teal-500/40 hover:border-teal-400 p-2.5 rounded-xl text-center transition flex flex-col items-center group shadow col-span-2 sm:col-span-1">
+            <i class="fa-solid fa-graduation-cap text-base mb-1 text-teal-400 group-hover:scale-110 transition"></i>
+            <span class="font-extrabold text-[11px]">Alumno</span>
+            <span class="text-[9px] text-slate-400">Estudiante</span>
           </button>
         </div>
       </div>
