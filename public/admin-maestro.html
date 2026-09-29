@@ -689,8 +689,11 @@
           opt.innerText = `${c.school_name} - ${c.grade_name} (${c.student_count} alumnos)`;
           rosterCourseSelect.appendChild(opt);
         });
-        if (overviewData.courses.length > 0 && !currentRosterCourseId) {
-          currentRosterCourseId = overviewData.courses[0].id;
+
+        if (overviewData.courses.length > 0) {
+          const courseWithStudents = overviewData.courses.find(c => c.student_count > 0) || overviewData.courses[0];
+          currentRosterCourseId = courseWithStudents.id;
+          rosterCourseSelect.value = currentRosterCourseId;
         }
 
         // Render All Activities Table

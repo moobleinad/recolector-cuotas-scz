@@ -159,6 +159,10 @@ try {
   } else {
     db.prepare('UPDATE users SET roles = ? WHERE email = ?').run(JSON.stringify(["PADRE"]), 'padre@cuotas.bo');
   }
+
+  // Depuración: eliminar curso sin alumnos (5to A de Secundaria / ID 2)
+  db.prepare("DELETE FROM courses WHERE id = 2 OR (grade_name LIKE '%5to A%' AND (SELECT COUNT(*) FROM students WHERE course_id = courses.id) = 0)").run();
+  db.prepare("DELETE FROM users WHERE email = 'patricia@aleman.bo'").run();
 } catch(e){}
 
 // Seed Initial Data if empty
@@ -691,6 +695,24 @@ app.post('/api/admin/courses', authenticateUser, requireSuperAdmin, (req, res) =
       .run(school_id, grade_name.trim(), slug, nowStr);
 
     res.json({ success: true, courseId: Number(result.lastInsertRowid), slug, message: 'Curso creado con éxito.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/courses/:id', authenticateUser, requireSuperAdmin, (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const studentCount = db.prepare('SELECT COUNT(*) as count FROM students WHERE course_id = ?').get(courseId)?.count || 0;
+    if (studentCount > 0) {
+      return res.status(400).json({ error: `No se puede eliminar porque tiene ${studentCount} alumnos registrados.` });
+    }
+
+    db.prepare('DELETE FROM activities WHERE course_id = ?').run(courseId);
+    db.prepare('UPDATE users SET course_id = NULL WHERE course_id = ?').run(courseId);
+    db.prepare('DELETE FROM courses WHERE id = ?').run(courseId);
+
+    res.json({ success: true, message: 'Curso eliminado con éxito.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
