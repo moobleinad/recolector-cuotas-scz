@@ -104,6 +104,10 @@
             <span class="text-[10px] text-slate-400 font-semibold uppercase block">Monto de la Cuota</span>
             <span class="text-2xl font-black text-amber-400" id="act-amount">0 Bs.</span>
           </div>
+          <button onclick="shareActiveActivityWhatsApp()" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-bold p-3 rounded-2xl text-xs flex flex-col items-center justify-center transition" title="Compartir Cuota por WhatsApp">
+            <i class="fa-brands fa-whatsapp text-lg"></i>
+            <span class="text-[9px] mt-0.5">Compartir</span>
+          </button>
         </div>
       </div>
 
@@ -243,7 +247,56 @@
       </div>
     </div>
 
-  </main>
+  
+  <!-- MODAL: FICHA DEL ALUMNO -->
+  <div id="modal-student-summary" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-extrabold text-white text-base" id="m-stud-name">-</h3>
+        <button onclick="closeStudentSummaryModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 block">Total</span>
+          <span class="font-bold text-white text-base" id="m-stud-total-req">0 Bs.</span>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 block">Pagado</span>
+          <span class="font-bold text-emerald-400 text-base" id="m-stud-total-paid">0 Bs.</span>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 block">Saldo</span>
+          <span class="font-bold text-rose-400 text-base" id="m-stud-total-pending">0 Bs.</span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto border border-slate-800 rounded-2xl">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+            <tr>
+              <th class="py-2 px-3">Cuota</th>
+              <th class="py-2 px-3 text-center">Estado</th>
+              <th class="py-2 px-3 text-right">Abonado</th>
+            </tr>
+          </thead>
+          <tbody id="m-stud-breakdown-tbody" class="divide-y divide-slate-800/80">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center gap-2 pt-2">
+        <button onclick="shareStudentSummaryWhatsApp()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
+          <i class="fa-brands fa-whatsapp text-sm"></i> Compartir por WhatsApp
+        </button>
+        <button onclick="closeStudentSummaryModal()" class="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+</main>
 
   <script>
     const token = localStorage.getItem('cuotas_token');
@@ -303,7 +356,10 @@
 
     function initDashboard() {
       const p = parentDashboard.parent;
-      document.getElementById('parent-greeting').innerText = `${p.name} • Tutor`;
+      let roleLabel = 'Tutor / Padre';
+      if (p.roles && p.roles.includes('PROFESOR')) roleLabel = 'Profesor / Docente';
+      else if (p.roles && p.roles.includes('ALUMNO')) roleLabel = 'Alumno / Estudiante';
+      document.getElementById('parent-greeting').innerText = `${p.name} • ${roleLabel}`;
 
       // Setup students
       if (parentDashboard.students && parentDashboard.students.length > 0) {
@@ -510,7 +566,7 @@
         tr.innerHTML = `
           <td class="py-3 px-3.5 text-center text-slate-500 font-mono">${idx + 1}</td>
           <td class="py-3 px-3.5 text-white flex items-center gap-2">
-            <span>${s.full_name}</span>
+            <button onclick="openStudentSummaryModal(${s.id})" class="text-left hover:text-emerald-400 underline decoration-dotted transition" title="Ver ficha">${s.full_name}</button>
             ${isMyChild ? '<span class="text-[10px] bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-full font-extrabold uppercase">Tu Hijo</span>' : ''}
           </td>
           <td class="py-3 px-3.5 text-center">${badge}</td>
@@ -525,6 +581,62 @@
       localStorage.removeItem('cuotas_token');
       localStorage.removeItem('cuotas_user');
       window.location.href = '/';
+    }
+
+    
+    let currentStudentSummaryData = null;
+
+    function shareActiveActivityWhatsApp() {
+      const act = parentDashboard?.activities?.find(a => a.id === selectedActivityId);
+      if (!act) return;
+
+      const student = parentDashboard?.students?.find(s => s.id === selectedStudentId);
+      const msg = `📢 *CUOTA ESCOLAR:* ${act.title}\n` +
+        `🏫 *Colegio:* ${student?.school_name || 'Colegio'} - *Curso:* ${student?.grade_name || 'Curso'}\n` +
+        `💰 *Monto:* ${act.amount_bob} Bs.\n` +
+        `📅 *Límite:* ${act.deadline_date}\n` +
+        `🏦 *Banco:* ${act.bank_name || 'Banco Ganadero'} | *Cuenta:* ${act.account_number || 'CA 1310325959'}\n` +
+        `👤 *Titular:* ${act.account_holder || 'Daniel Simons'}\n` +
+        `📲 *Consulta y paga aquí:* ${window.location.origin}`;
+
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    async function openStudentSummaryModal(studentId) {
+      try {
+        const res = await fetch(`/api/students/${studentId}/financial-summary`);
+        currentStudentSummaryData = await res.json();
+
+        document.getElementById('m-stud-name').innerText = currentStudentSummaryData.student.full_name;
+        document.getElementById('m-stud-total-req').innerText = `${currentStudentSummaryData.totals.totalRequired} Bs.`;
+        document.getElementById('m-stud-total-paid').innerText = `${currentStudentSummaryData.totals.totalPaid} Bs.`;
+        document.getElementById('m-stud-total-pending').innerText = `${currentStudentSummaryData.totals.totalPending} Bs.`;
+
+        const tbody = document.getElementById('m-stud-breakdown-tbody');
+        tbody.innerHTML = '';
+        currentStudentSummaryData.breakdown.forEach(b => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="py-2 px-3 font-semibold text-white">${b.title}</td>
+            <td class="py-2 px-3 text-center font-bold ${b.status === 'PAGADO' ? 'text-emerald-400' : 'text-rose-400'}">${b.status}</td>
+            <td class="py-2 px-3 text-right font-bold text-slate-300">${b.amount_paid} / ${b.amount_bob} Bs.</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById('modal-student-summary').classList.remove('hidden');
+      } catch (e) {
+        alert("No se pudo cargar la información.");
+      }
+    }
+
+    function closeStudentSummaryModal() {
+      document.getElementById('modal-student-summary').classList.add('hidden');
+    }
+
+    function shareStudentSummaryWhatsApp() {
+      if (!currentStudentSummaryData || !currentStudentSummaryData.whatsappText) return;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(currentStudentSummaryData.whatsappText)}`, '_blank');
     }
 
     window.addEventListener('DOMContentLoaded', checkAuthAndLoad);

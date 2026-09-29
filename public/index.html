@@ -77,7 +77,7 @@
         <span class="text-[11px] text-slate-400 font-semibold block text-center">
           ⚡ Cuentas de demostración (Clic para rellenar rápido):
         </span>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
           <!-- ADMIN -->
           <button onclick="fillLogin('admin@cuotas.bo', 'admin123')" class="bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
             <i class="fa-solid fa-crown text-sm mb-1 text-amber-400"></i>
@@ -93,8 +93,20 @@
           <!-- PADRE -->
           <button onclick="fillLogin('padre@cuotas.bo', 'padre123')" class="bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
             <i class="fa-solid fa-users text-sm mb-1 text-cyan-400"></i>
-            <span class="font-bold">Padre de Familia</span>
-            <span class="text-[10px] text-slate-400">Tutor de Alumno</span>
+            <span class="font-bold">Padre</span>
+            <span class="text-[10px] text-slate-400">Tutor</span>
+          </button>
+          <!-- PROFESOR -->
+          <button onclick="fillLogin('profesor@colegiosantacruz.bo', 'profe123')" class="bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-indigo-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
+            <i class="fa-solid fa-chalkboard-user text-sm mb-1 text-indigo-400"></i>
+            <span class="font-bold">Profesor</span>
+            <span class="text-[10px] text-slate-400">Docente</span>
+          </button>
+          <!-- ALUMNO -->
+          <button onclick="fillLogin('alumno@colegiosantacruz.bo', 'alumno123')" class="bg-slate-900 hover:bg-slate-800 text-teal-300 border border-teal-500/30 p-2.5 rounded-xl text-center transition flex flex-col items-center">
+            <i class="fa-solid fa-graduation-cap text-sm mb-1 text-teal-400"></i>
+            <span class="font-bold">Alumno</span>
+            <span class="text-[10px] text-slate-400">Estudiante</span>
           </button>
         </div>
       </div>
@@ -331,6 +343,40 @@
         optionsContainer.appendChild(btn);
       }
 
+      if (roles.includes('PROFESOR')) {
+        const btn = document.createElement('button');
+        btn.onclick = () => navigateToRole('PROFESOR');
+        btn.className = 'w-full bg-slate-950 hover:bg-slate-800 border border-indigo-500/40 hover:border-indigo-400 p-3.5 rounded-2xl text-left transition flex items-center gap-3.5 group shadow';
+        btn.innerHTML = `
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 group-hover:bg-indigo-500 group-hover:text-slate-950 flex items-center justify-center text-lg transition font-bold">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <div class="flex-grow">
+            <span class="font-bold text-white text-sm block">Profesor / Maestro</span>
+            <span class="text-[11px] text-slate-400">Supervisión académica, consulta de cuotas y difusión por WhatsApp</span>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-white transition"></i>
+        `;
+        optionsContainer.appendChild(btn);
+      }
+
+      if (roles.includes('ALUMNO')) {
+        const btn = document.createElement('button');
+        btn.onclick = () => navigateToRole('ALUMNO');
+        btn.className = 'w-full bg-slate-950 hover:bg-slate-800 border border-teal-500/40 hover:border-teal-400 p-3.5 rounded-2xl text-left transition flex items-center gap-3.5 group shadow';
+        btn.innerHTML = `
+          <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 group-hover:bg-teal-500 group-hover:text-slate-950 flex items-center justify-center text-lg transition font-bold">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div class="flex-grow">
+            <span class="font-bold text-white text-sm block">Alumno / Estudiante</span>
+            <span class="text-[11px] text-slate-400">Consulta de cuotas del curso y difusión por WhatsApp</span>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-white transition"></i>
+        `;
+        optionsContainer.appendChild(btn);
+      }
+
       document.getElementById('role-modal').classList.remove('hidden');
     }
 
@@ -339,7 +385,7 @@
         window.location.href = '/admin-maestro.html';
       } else if (role === 'DIRECTIVO') {
         window.location.href = '/directivo.html';
-      } else if (role === 'PADRE') {
+      } else {
         window.location.href = '/padre.html';
       }
     }

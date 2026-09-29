@@ -114,6 +114,19 @@ db.exec(`
     FOREIGN KEY(user_id) REFERENCES users(id)
   );
 
+  
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    action TEXT NOT NULL,           -- 'CREAR', 'EDITAR', 'ELIMINAR', 'PAUSAR', 'ACTIVAR', 'PAGO'
+    entity_type TEXT NOT NULL,      -- 'USUARIO', 'COLEGIO', 'CURSO', 'ACTIVIDAD', 'ALUMNO', 'PAGO'
+    entity_id INTEGER,
+    entity_name TEXT,
+    user_id INTEGER,
+    user_name TEXT,
+    details TEXT,                   -- JSON snapshot of the item
+    created_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS chat_sessions (
     sender_phone TEXT PRIMARY KEY,
     course_id INTEGER NOT NULL,
@@ -133,6 +146,26 @@ try { db.exec("ALTER TABLE activities ADD COLUMN installments_count INTEGER DEFA
 try { db.exec("ALTER TABLE activities ADD COLUMN installment_amount REAL DEFAULT 0"); } catch(e){}
 try { db.exec("ALTER TABLE payments ADD COLUMN installments_covered INTEGER DEFAULT 1"); } catch(e){}
 try { db.exec("ALTER TABLE payments ADD COLUMN payer_name TEXT"); } catch(e){}
+
+
+// Audit Log Helper (Historial y Auditoría Global para Super Administrador)
+function logAudit(action, entityType, entityId, entityName, user, details = {}) {
+  try {
+    const nowStr = new Date().toISOString();
+    const uId = user ? (user.user_id || user.id) : null;
+    const uName = user ? (user.name || user.email) : 'Sistema';
+    db.prepare(`
+      INSERT INTO audit_logs (action, entity_type, entity_id, entity_name, user_id, user_name, details, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(action, entityType, entityId ? Number(entityId) : null, entityName || '', uId, uName, JSON.stringify(details), nowStr);
+  } catch (e) {
+    console.error('Audit log error:', e.message);
+  }
+}
+
+
+try { db.exec("ALTER TABLE courses ADD COLUMN status TEXT DEFAULT 'ACTIVO'"); } catch(e){}
+try { db.exec("ALTER TABLE schools ADD COLUMN status TEXT DEFAULT 'ACTIVO'"); } catch(e){}
 
 // Password helper
 function hashPassword(password) {
@@ -164,6 +197,25 @@ try {
   db.prepare("DELETE FROM courses WHERE id = 2 OR (grade_name LIKE '%5to A%' AND (SELECT COUNT(*) FROM students WHERE course_id = courses.id) = 0)").run();
   db.prepare("DELETE FROM users WHERE email = 'patricia@aleman.bo'").run();
 } catch(e){}
+
+
+  // Profesor Demo Account (PROFESOR + PADRE)
+  const profeExists = db.prepare('SELECT id FROM users WHERE email = ?').get('profesor@colegiosantacruz.bo');
+  if (!profeExists) {
+    db.prepare(`
+      INSERT INTO users (name, email, password_hash, role, roles, phone, status, created_at)
+      VALUES (?, ?, ?, 'PROFESOR', '["PROFESOR", "PADRE"]', '75512345', 'ACTIVO', ?)
+    `).run('Prof. Carlos Mendoza', 'profesor@colegiosantacruz.bo', hashPassword('profe123'), new Date().toISOString());
+  }
+
+  // Alumno Demo Account (ALUMNO)
+  const alumnoExists = db.prepare('SELECT id FROM users WHERE email = ?').get('alumno@colegiosantacruz.bo');
+  if (!alumnoExists) {
+    db.prepare(`
+      INSERT INTO users (name, email, password_hash, role, roles, phone, status, created_at)
+      VALUES (?, ?, ?, 'ALUMNO', '["ALUMNO"]', '78899000', 'ACTIVO', ?)
+    `).run('Mateo Zeballos (Estudiante)', 'alumno@colegiosantacruz.bo', hashPassword('alumno123'), new Date().toISOString());
+  }
 
 // Seed Initial Data if empty
 const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
@@ -307,8 +359,10 @@ function requireDirectivo(req, res, next) {
 }
 
 function requirePadre(req, res, next) {
-  if (!req.user || (!req.user.rolesList.includes('PADRE') && !req.user.rolesList.includes('SUPER_ADMIN'))) {
-    return res.status(403).json({ error: 'Acceso restringido a Padres de Familia.' });
+  const allowed = ['PADRE', 'PROFESOR', 'ALUMNO', 'SUPER_ADMIN'];
+  const hasRole = req.user && req.user.rolesList.some(r => allowed.includes(r));
+  if (!hasRole) {
+    return res.status(403).json({ error: 'Acceso restringido a Padres de Familia, Profesores o Alumnos.' });
   }
   next();
 }
@@ -1783,6 +1837,315 @@ function registerBotPayment(res, activity, student, session) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+
+// ==========================================
+// AUDITORIA, GESTION AVANZADA Y ROLES PROFESOR/ALUMNO
+// ==========================================
+
+// Toggle User Status (ACTIVO <-> PAUSADO)
+app.patch('/api/admin/users/:id/status', authenticateUser, requireSuperAdmin, (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    if (userId === req.user.user_id) {
+      return res.status(400).json({ error: 'No puedes pausar tu propia cuenta de Super Administrador.' });
+    }
+
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado.' });
+
+    const newStatus = user.status === 'ACTIVO' ? 'PAUSADO' : 'ACTIVO';
+    db.prepare('UPDATE users SET status = ? WHERE id = ?').run(newStatus, userId);
+
+    logAudit(newStatus === 'PAUSADO' ? 'PAUSAR' : 'ACTIVAR', 'USUARIO', userId, user.name, req.user, {
+      previous_status: user.status,
+      new_status: newStatus,
+      email: user.email,
+      roles: user.roles
+    });
+
+    res.json({ success: true, status: newStatus, new_status: newStatus, message: `Usuario marcado como ${newStatus}.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Audit Logs for Super Admin
+app.get('/api/admin/audit-logs', authenticateUser, requireSuperAdmin, (req, res) => {
+  try {
+    const { entity_type, action, limit = 100 } = req.query;
+    let sql = 'SELECT * FROM audit_logs';
+    const conditions = [];
+    const params = [];
+
+    if (entity_type) {
+      conditions.push('entity_type = ?');
+      params.push(entity_type);
+    }
+    if (action) {
+      conditions.push('action = ?');
+      params.push(action);
+    }
+
+    if (conditions.length > 0) {
+      sql += ' WHERE ' + conditions.join(' AND ');
+    }
+    sql += ' ORDER BY id DESC LIMIT ?';
+    params.push(Number(limit));
+
+    const logs = db.prepare(sql).all(...params);
+    const parsedLogs = logs.map(l => ({
+      ...l,
+      details: l.details ? JSON.parse(l.details) : {}
+    }));
+
+    res.json(parsedLogs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Edit Course (grade_name, school_id, user_id, status)
+app.put('/api/admin/courses/:id', authenticateUser, requireSuperAdmin, (req, res) => {
+  try {
+    const courseId = Number(req.params.id);
+    const { grade_name, school_id, user_id, status } = req.body;
+
+    const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(courseId);
+    if (!course) return res.status(404).json({ error: 'Curso no encontrado.' });
+
+    const newGrade = grade_name ? grade_name.trim() : course.grade_name;
+    const newSchoolId = school_id ? Number(school_id) : course.school_id;
+    const newUserId = user_id !== undefined ? (user_id ? Number(user_id) : null) : course.user_id;
+    const newStatus = status || course.status || 'ACTIVO';
+
+    db.prepare(`
+      UPDATE courses 
+      SET grade_name = ?, school_id = ?, user_id = ?, status = ?
+      WHERE id = ?
+    `).run(newGrade, newSchoolId, newUserId, newStatus, courseId);
+
+    logAudit('EDITAR', 'CURSO', courseId, newGrade, req.user, {
+      old: course,
+      new: { grade_name: newGrade, school_id: newSchoolId, user_id: newUserId, status: newStatus }
+    });
+
+    res.json({ success: true, message: 'Curso actualizado exitosamente.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Toggle Course Status (ACTIVO <-> PAUSADO)
+app.patch('/api/admin/courses/:id/status', authenticateUser, requireSuperAdmin, (req, res) => {
+  try {
+    const courseId = Number(req.params.id);
+    const course = db.prepare('SELECT * FROM courses WHERE id = ?').get(courseId);
+    if (!course) return res.status(404).json({ error: 'Curso no encontrado.' });
+
+    const newStatus = (course.status || 'ACTIVO') === 'ACTIVO' ? 'PAUSADO' : 'ACTIVO';
+    db.prepare('UPDATE courses SET status = ? WHERE id = ?').run(newStatus, courseId);
+
+    logAudit(newStatus === 'PAUSADO' ? 'PAUSAR' : 'ACTIVAR', 'CURSO', courseId, course.grade_name, req.user, {
+      previous_status: course.status || 'ACTIVO',
+      new_status: newStatus
+    });
+
+    res.json({ success: true, status: newStatus, new_status: newStatus, message: `Curso marcado como ${newStatus}.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Edit School
+app.put('/api/admin/schools/:id', authenticateUser, requireSuperAdmin, (req, res) => {
+  try {
+    const schoolId = Number(req.params.id);
+    const { name, city, status } = req.body;
+
+    const school = db.prepare('SELECT * FROM schools WHERE id = ?').get(schoolId);
+    if (!school) return res.status(404).json({ error: 'Colegio no encontrado.' });
+
+    const newName = name ? name.trim() : school.name;
+    const newCity = city ? city.trim() : school.city;
+    const newStatus = status || school.status || 'ACTIVO';
+
+    db.prepare('UPDATE schools SET name = ?, city = ?, status = ? WHERE id = ?').run(newName, newCity, newStatus, schoolId);
+
+    logAudit('EDITAR', 'COLEGIO', schoolId, newName, req.user, {
+      old: school,
+      new: { name: newName, city: newCity, status: newStatus }
+    });
+
+    res.json({ success: true, message: 'Colegio actualizado con éxito.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Toggle School Status
+app.patch('/api/admin/schools/:id/status', authenticateUser, requireSuperAdmin, (req, res) => {
+  try {
+    const schoolId = Number(req.params.id);
+    const school = db.prepare('SELECT * FROM schools WHERE id = ?').get(schoolId);
+    if (!school) return res.status(404).json({ error: 'Colegio no encontrado.' });
+
+    const newStatus = (school.status || 'ACTIVO') === 'ACTIVO' ? 'PAUSADO' : 'ACTIVO';
+    db.prepare('UPDATE schools SET status = ? WHERE id = ?').run(newStatus, schoolId);
+
+    logAudit(newStatus === 'PAUSADO' ? 'PAUSAR' : 'ACTIVAR', 'COLEGIO', schoolId, school.name, req.user, {
+      previous_status: school.status || 'ACTIVO',
+      new_status: newStatus
+    });
+
+    res.json({ success: true, status: newStatus, message: `Colegio marcado como ${newStatus}.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete School (only if empty)
+app.delete('/api/admin/schools/:id', authenticateUser, requireSuperAdmin, (req, res) => {
+  try {
+    const schoolId = Number(req.params.id);
+    const courseCount = db.prepare('SELECT COUNT(*) as count FROM courses WHERE school_id = ?').get(schoolId)?.count || 0;
+    if (courseCount > 0) {
+      return res.status(400).json({ error: `No se puede eliminar el colegio porque tiene ${courseCount} curso(s) asociados.` });
+    }
+
+    const school = db.prepare('SELECT * FROM schools WHERE id = ?').get(schoolId);
+    if (!school) return res.status(404).json({ error: 'Colegio no encontrado.' });
+
+    db.prepare('DELETE FROM schools WHERE id = ?').run(schoolId);
+    logAudit('ELIMINAR', 'COLEGIO', schoolId, school.name, req.user, { deleted_school: school });
+
+    res.json({ success: true, message: 'Colegio eliminado exitosamente.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Activity (with audit log of payments and activity)
+app.delete('/api/directivo/activities/:id', authenticateUser, (req, res) => {
+  try {
+    const actId = Number(req.params.id);
+    const isSuper = req.user.rolesList.includes('SUPER_ADMIN');
+    const isDirectivo = req.user.rolesList.includes('DIRECTIVO');
+
+    if (!isSuper && !isDirectivo) {
+      return res.status(403).json({ error: 'Acceso no autorizado para eliminar actividades.' });
+    }
+
+    const act = db.prepare('SELECT * FROM activities WHERE id = ?').get(actId);
+    if (!act) return res.status(404).json({ error: 'Actividad no encontrada.' });
+
+    // If not super admin, check course assignment
+    if (!isSuper) {
+      const userCourse = db.prepare('SELECT id FROM courses WHERE user_id = ?').get(req.user.user_id);
+      if (!userCourse || userCourse.id !== act.course_id) {
+        return res.status(403).json({ error: 'Solo la directiva de este curso o el Super Admin pueden eliminar esta cuota.' });
+      }
+    }
+
+    // Capture snapshot of payments before deletion
+    const payments = db.prepare('SELECT * FROM payments WHERE activity_id = ?').all(actId);
+    db.prepare('DELETE FROM payments WHERE activity_id = ?').run(actId);
+    db.prepare('DELETE FROM activities WHERE id = ?').run(actId);
+
+    logAudit('ELIMINAR', 'ACTIVIDAD', actId, act.title, req.user, {
+      deleted_activity: act,
+      deleted_payments_count: payments.length,
+      deleted_payments: payments
+    });
+
+    res.json({ success: true, message: `Actividad "${act.title}" eliminada con éxito.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Student Individual Financial Summary (Ficha y Estado Financiero para Modal)
+app.get('/api/students/:id/financial-summary', (req, res) => {
+  try {
+    const studentId = Number(req.params.id);
+    const student = db.prepare(`
+      SELECT s.*, c.grade_name, c.slug as course_slug, sc.name as school_name, u.name as president_name, u.phone as president_phone
+      FROM students s
+      JOIN courses c ON s.course_id = c.id
+      JOIN schools sc ON c.school_id = sc.id
+      LEFT JOIN users u ON c.user_id = u.id
+      WHERE s.id = ?
+    `).get(studentId);
+
+    if (!student) return res.status(404).json({ error: 'Estudiante no encontrado.' });
+
+    const activities = db.prepare(`
+      SELECT * FROM activities 
+      WHERE course_id = ? 
+      ORDER BY id DESC
+    `).all(student.course_id);
+
+    const payments = db.prepare(`
+      SELECT * FROM payments 
+      WHERE student_id = ?
+    `).all(studentId);
+
+    let totalRequired = 0;
+    let totalPaid = 0;
+
+    const breakdown = activities.map(act => {
+      totalRequired += act.amount_bob;
+      const p = payments.find(pay => pay.activity_id === act.id);
+      const isPaid = !!p;
+      const isRec = act.type === 'RECURRENTE';
+      const isFullyPaid = isPaid && (!isRec || p.amount_bob >= act.amount_bob);
+
+      const paidAmount = p ? p.amount_bob : 0;
+      totalPaid += paidAmount;
+
+      return {
+        activity_id: act.id,
+        title: act.title,
+        type: act.type,
+        amount_bob: act.amount_bob,
+        deadline_date: act.deadline_date,
+        bank_name: act.bank_name,
+        account_number: act.account_number,
+        account_holder: act.account_holder,
+        status: isFullyPaid ? 'PAGADO' : (isPaid ? 'PARCIAL' : 'PENDIENTE'),
+        amount_paid: paidAmount,
+        installments_covered: p ? p.installments_covered : 0,
+        paid_at: p ? p.paid_at : null,
+        ref_number: p ? p.ref_number : null
+      };
+    });
+
+    const totalPending = Math.max(0, totalRequired - totalPaid);
+
+    // Formatted WhatsApp message for parent
+    const waText = `📋 *ESTADO DE CUOTAS ESCOLARES*\n` +
+      `👤 *Alumno:* ${student.full_name}\n` +
+      `🏫 *Colegio:* ${student.school_name} - ${student.grade_name}\n` +
+      `💰 *Total Abonado:* ${totalPaid} Bs.\n` +
+      `⏳ *Saldo Pendiente:* ${totalPending} Bs.\n\n` +
+      `*DETALLE DE CUOTAS:*\n` +
+      breakdown.map((b, i) => `${i + 1}. ${b.title}: *${b.status}* (${b.amount_paid}/${b.amount_bob} Bs.)`).join('\n');
+
+    res.json({
+      student,
+      totals: {
+        totalRequired,
+        totalPaid,
+        totalPending,
+        compliancePercent: totalRequired > 0 ? Math.round((totalPaid / totalRequired) * 100) : 100
+      },
+      breakdown,
+      whatsappText: waText
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`CUOTAS_UNIFIED_SERVER_ON_PORT_${PORT}`);

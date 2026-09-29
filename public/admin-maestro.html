@@ -138,7 +138,10 @@
         <i class="fa-solid fa-chart-pie text-amber-400"></i> 2. Resumen Financiero Mes / Año
       </button>
       <button onclick="switchTab('users')" id="tab-btn-users" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition bg-slate-900 border border-slate-800 flex items-center gap-2">
-        <i class="fa-solid fa-users-gear text-purple-400"></i> 3. Gestión de Usuarios y Roles
+        <i class="fa-solid fa-users-gear text-purple-400"></i> 3. Directorio de Usuarios y Roles
+      </button>
+      <button onclick="switchTab('audit')" id="tab-btn-audit" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition bg-slate-900 border border-slate-800 flex items-center gap-2">
+        <i class="fa-solid fa-clock-rotate-left text-rose-400"></i> 4. Historial y Auditoría (Borrados)
       </button>
     </div>
 
@@ -273,6 +276,7 @@
                 <th class="py-3 px-3 text-center">Estado</th>
                 <th class="py-3 px-3 text-center">Pagaron</th>
                 <th class="py-3 px-3 text-right">Recaudado</th>
+                <th class="py-3 px-3 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody id="all-activities-tbody" class="divide-y divide-slate-800/80">
@@ -282,26 +286,29 @@
         </div>
       </div>
 
-      <!-- DIRECTIVOS TABLE -->
+      <!-- USUARIOS Y ROLES DEL SISTEMA (MODIFICADO Y COMPLETO) -->
       <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4" id="card-directivos">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
             <h2 class="font-bold text-white text-base flex items-center gap-2">
-              <i class="fa-solid fa-user-tie text-purple-400"></i> Directivos Registrados
+              <i class="fa-solid fa-users-gear text-purple-400"></i> Usuarios y Roles del Sistema
             </h2>
-            <p class="text-xs text-slate-400">Cuentas con permisos exclusivos para administrar sus respectivos cursos.</p>
+            <p class="text-xs text-slate-400">Administra todas las cuentas (Super Admin, Directivos, Profesores, Padres y Alumnos), cambia su estado o edítalos.</p>
           </div>
+          <button onclick="openCreateUserModal()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
+            <i class="fa-solid fa-user-plus"></i> Agregar Usuario
+          </button>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
               <tr>
-                <th class="py-3 px-3">Directivo</th>
-                <th class="py-3 px-3">Colegio Asignado</th>
-                <th class="py-3 px-3">Curso</th>
+                <th class="py-3 px-3">Nombre Completo</th>
                 <th class="py-3 px-3">Correo / Usuario</th>
-                <th class="py-3 px-3 text-center">Actividades</th>
+                <th class="py-3 px-3">WhatsApp</th>
+                <th class="py-3 px-3 text-center">Roles Asignados</th>
+                <th class="py-3 px-3">Curso Asignado</th>
                 <th class="py-3 px-3 text-center">Estado</th>
                 <th class="py-3 px-3 text-center">Acciones</th>
               </tr>
@@ -313,18 +320,23 @@
         </div>
       </div>
 
-      <!-- COURSES TABLE & PUBLIC LINKS -->
+      <!-- COURSES TABLE & PUBLIC LINKS (CON EDICIÓN Y PAUSA) -->
       <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4" id="card-cursos">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
             <h2 class="font-bold text-white text-base flex items-center gap-2">
-              <i class="fa-solid fa-graduation-cap text-cyan-400"></i> Cursos y Enlaces Públicos para Padres
+              <i class="fa-solid fa-graduation-cap text-cyan-400"></i> Cursos y Colegios Registrados
             </h2>
-            <p class="text-xs text-slate-400">Enlaces únicos que cada presidenta comparte con los padres de familia para ver cuotas y pagar por QR.</p>
+            <p class="text-xs text-slate-400">Edita nombres de colegios o cursos, pausa accesos, gestiona nóminas o elimina cursos sin alumnos en este mismo recuadro.</p>
           </div>
-          <button onclick="openRosterModal()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1.5">
-            <i class="fa-solid fa-users"></i> Gestionar Alumnos de Cursos
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="scrollToSection('step-crear-curso')" class="text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5">
+              <i class="fa-solid fa-plus"></i> Nuevo Curso
+            </button>
+            <button onclick="openRosterModal()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center gap-1.5">
+              <i class="fa-solid fa-users"></i> Gestionar Alumnos
+            </button>
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -335,8 +347,10 @@
                 <th class="py-3 px-3">Curso</th>
                 <th class="py-3 px-3">Directivo a Cargo</th>
                 <th class="py-3 px-3 text-center">Alumnos</th>
+                <th class="py-3 px-3 text-center">Estado</th>
                 <th class="py-3 px-3 text-center">Nómina</th>
-                <th class="py-3 px-3 text-right">Link Público para Padres</th>
+                <th class="py-3 px-3 text-center">Acciones Curso / Colegio</th>
+                <th class="py-3 px-3 text-right">Link Público</th>
               </tr>
             </thead>
             <tbody id="courses-tbody" class="divide-y divide-slate-800/80">
@@ -445,6 +459,7 @@
                 <th class="py-3 px-3 text-center">Cuota</th>
                 <th class="py-3 px-3 text-center">Pagaron</th>
                 <th class="py-3 px-3 text-right">Recaudado</th>
+                <th class="py-3 px-3 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody id="financial-activities-tbody" class="divide-y divide-slate-800/80">
@@ -507,6 +522,61 @@
       </div>
     </div>
 
+
+
+    <!-- SECTION 4: HISTORIAL Y AUDITORIA GLOBAL (INCLUYE BORRADOS) -->
+    <div id="section-audit" class="hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-rose-400"></i> Historial y Auditoría Global (Registro de Modificaciones y Borrados)
+            </h2>
+            <p class="text-xs text-slate-400">Auditoría inmutable de todas las acciones del sistema. Consulta qué se borró o modificó, quién lo hizo, fecha y datos de respaldo.</p>
+          </div>
+          <button onclick="loadAuditLogs()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3.5 py-2 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate"></i> Actualizar Historial
+          </button>
+        </div>
+
+        <!-- Filter Audit -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <select id="audit-filter-action" onchange="loadAuditLogs()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+            <option value="">Todas las Acciones</option>
+            <option value="ELIMINAR">Borrados (ELIMINAR)</option>
+            <option value="EDITAR">Modificaciones (EDITAR)</option>
+            <option value="PAUSAR">Pausas (PAUSAR)</option>
+            <option value="ACTIVAR">Activaciones (ACTIVAR)</option>
+            <option value="CREAR">Creaciones (CREAR)</option>
+          </select>
+          <select id="audit-filter-type" onchange="loadAuditLogs()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+            <option value="">Todos los Elementos</option>
+            <option value="USUARIO">Usuarios</option>
+            <option value="CURSO">Cursos</option>
+            <option value="COLEGIO">Colegios</option>
+            <option value="ACTIVIDAD">Actividades / Cuotas</option>
+          </select>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-3">Fecha y Hora</th>
+                <th class="py-3 px-3 text-center">Acción</th>
+                <th class="py-3 px-3">Tipo de Elemento</th>
+                <th class="py-3 px-3">Nombre del Elemento</th>
+                <th class="py-3 px-3">Realizado por</th>
+                <th class="py-3 px-3 text-center">Detalle / Respaldo</th>
+              </tr>
+            </thead>
+            <tbody id="audit-tbody" class="divide-y divide-slate-800/80">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
 </main>
 
@@ -589,7 +659,234 @@
     </div>
   </div>
 
-  <script>
+  
+  <!-- MODAL: CREAR / EDITAR USUARIO Y ROLES -->
+  <div id="modal-user-crud" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center gap-2" id="modal-user-title">
+          <i class="fa-solid fa-user-pen text-purple-400"></i> Registrar Usuario y Roles
+        </h3>
+        <button onclick="closeUserModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleSaveUser(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="usr-modal-id" value="">
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Nombre Completo *</label>
+          <input type="text" id="usr-modal-name" required placeholder="Ej. Daniel Simons / Carmen Hurtado"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-purple-500">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">Correo Electrónico (Login) *</label>
+            <input type="email" id="usr-modal-email" required placeholder="usuario@correo.com"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">Teléfono WhatsApp</label>
+            <input type="tel" id="usr-modal-phone" placeholder="77123456"
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Contraseña</label>
+          <input type="text" id="usr-modal-password" placeholder="Ingresa contraseña..."
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-purple-500">
+          <span class="text-[10px] text-slate-500 mt-0.5 block" id="usr-pwd-hint">Para crear usuario nuevo es obligatoria. En edición, déjala en blanco para mantener la actual.</span>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Curso Asignado (Opcional)</label>
+          <select id="usr-modal-course-id" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500">
+            <option value="">-- Sin curso asignado --</option>
+          </select>
+        </div>
+
+        <!-- MULTI-ROLE CHECKBOXES (TODOS LOS 5 ROLES) -->
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2.5">
+          <label class="block text-slate-200 font-bold">Roles Asignados al Usuario (Permite selección múltiple) *</label>
+          <p class="text-[11px] text-slate-400">Puedes marcar los roles que correspondan a este usuario:</p>
+
+          <div class="space-y-2 pt-1">
+            <label class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 cursor-pointer transition">
+              <input type="checkbox" id="chk-role-superadmin" class="mt-0.5 rounded text-amber-500 focus:ring-amber-500 w-4 h-4 bg-slate-950 border-slate-700">
+              <div>
+                <span class="font-bold text-amber-300 text-xs block">👑 SUPER_ADMIN (Super Administrador)</span>
+                <span class="text-[10px] text-slate-400">Control maestro global de instituciones, cursos, cuotas, usuarios y finanzas.</span>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition">
+              <input type="checkbox" id="chk-role-directivo" class="mt-0.5 rounded text-emerald-500 focus:ring-emerald-500 w-4 h-4 bg-slate-950 border-slate-700">
+              <div>
+                <span class="font-bold text-emerald-300 text-xs block">📋 DIRECTIVO (Presidente / Tesorero)</span>
+                <span class="text-[10px] text-slate-400">Creación y gestión de cuotas de su curso, control de comprobantes e informes PDF.</span>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 cursor-pointer transition">
+              <input type="checkbox" id="chk-role-profesor" class="mt-0.5 rounded text-indigo-500 focus:ring-indigo-500 w-4 h-4 bg-slate-950 border-slate-700">
+              <div>
+                <span class="font-bold text-indigo-300 text-xs block">👨‍🏫 PROFESOR (Profesor / Maestro)</span>
+                <span class="text-[10px] text-slate-400">Mismos permisos que padre de familia pero ordenado por separado para la institución.</span>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 cursor-pointer transition">
+              <input type="checkbox" id="chk-role-padre" class="mt-0.5 rounded text-cyan-500 focus:ring-cyan-500 w-4 h-4 bg-slate-950 border-slate-700">
+              <div>
+                <span class="font-bold text-cyan-300 text-xs block">👨‍👩‍👧 PADRE (Padre / Tutor de Familia)</span>
+                <span class="text-[10px] text-slate-400">Acceso al portal de padres para consultar estados de cuotas de sus hijos y QR.</span>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-teal-500/50 cursor-pointer transition">
+              <input type="checkbox" id="chk-role-alumno" class="mt-0.5 rounded text-teal-500 focus:ring-teal-500 w-4 h-4 bg-slate-950 border-slate-700">
+              <div>
+                <span class="font-bold text-teal-300 text-xs block">🎓 ALUMNO (Estudiante)</span>
+                <span class="text-[10px] text-slate-400">Acceso para consultar cuotas del curso, compartir por WhatsApp y ver su estado personal.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div id="usr-modal-error" class="hidden text-rose-400 font-semibold text-xs text-center py-1"></div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeUserModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold">
+            Cancelar
+          </button>
+          <button type="submit" id="btn-save-usr" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg transition">
+            Guardar Usuario
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- MODAL: EDITAR CURSO Y COLEGIO -->
+  <div id="modal-edit-course" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-cyan-400"></i> Editar Curso / Colegio
+        </h3>
+        <button onclick="closeEditCourseModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleSaveEditCourse(event)" class="space-y-3.5 text-xs">
+        <input type="hidden" id="edit-course-id">
+        <input type="hidden" id="edit-school-id">
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Nombre del Colegio *</label>
+          <input type="text" id="edit-school-name" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Nombre del Curso *</label>
+          <input type="text" id="edit-course-grade" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Directivo Asignado</label>
+          <select id="edit-course-user-id" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+            <option value="">-- Sin directivo --</option>
+          </select>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeEditCourseModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-lg transition">
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- MODAL: FICHA Y ESTADO FINANCIERO DEL ALUMNO (AL HACER CLIC EN SU NOMBRE) -->
+  <div id="modal-student-summary" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg font-bold border border-emerald-500/30">
+            <i class="fa-solid fa-user-graduate"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-white text-base leading-tight" id="m-stud-name">-</h3>
+            <span class="text-xs text-emerald-400" id="m-stud-course">-</span>
+          </div>
+        </div>
+        <button onclick="closeStudentSummaryModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Financial KPI cards for student -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Total Cuotas</span>
+          <span class="text-lg font-bold text-white" id="m-stud-total-req">0 Bs.</span>
+        </div>
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Total Pagado</span>
+          <span class="text-lg font-bold text-emerald-400" id="m-stud-total-paid">0 Bs.</span>
+        </div>
+        <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Saldo Pendiente</span>
+          <span class="text-lg font-bold text-rose-400" id="m-stud-total-pending">0 Bs.</span>
+        </div>
+      </div>
+
+      <!-- Breakdown Table -->
+      <div class="space-y-2">
+        <span class="text-xs font-bold text-slate-300 block">Detalle de Cuotas y Pagos del Alumno:</span>
+        <div class="overflow-x-auto border border-slate-800 rounded-2xl">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-2.5 px-3">Actividad</th>
+                <th class="py-2.5 px-3 text-center">Cuota</th>
+                <th class="py-2.5 px-3 text-center">Estado</th>
+                <th class="py-2.5 px-3 text-right">Abonado</th>
+                <th class="py-2.5 px-3 text-right">Fecha / Ref</th>
+              </tr>
+            </thead>
+            <tbody id="m-stud-breakdown-tbody" class="divide-y divide-slate-800/80 bg-slate-900/60">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-between gap-3 pt-2">
+        <button onclick="shareStudentSummaryWhatsApp()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-xs transition">
+          <i class="fa-brands fa-whatsapp text-sm"></i>
+          <span>Compartir Estado por WhatsApp</span>
+        </button>
+        <button onclick="closeStudentSummaryModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+<script>
     const token = localStorage.getItem('cuotas_token');
     let overviewData = null;
     let financialData = null;
@@ -628,22 +925,6 @@
       }
     }
 
-    function switchTab(tab) {
-      document.getElementById('section-hierarchy').classList.toggle('hidden', tab !== 'hierarchy');
-      document.getElementById('section-summary').classList.toggle('hidden', tab !== 'summary');
-
-      const btnHierarchy = document.getElementById('tab-btn-hierarchy');
-      const btnSummary = document.getElementById('tab-btn-summary');
-
-      if (tab === 'hierarchy') {
-        btnHierarchy.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-emerald-600 text-white flex items-center gap-2 shadow";
-        btnSummary.className = "px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition bg-slate-900 border border-slate-800 flex items-center gap-2";
-      } else {
-        btnSummary.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-emerald-600 text-white flex items-center gap-2 shadow";
-        btnHierarchy.className = "px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition bg-slate-900 border border-slate-800 flex items-center gap-2";
-        loadFinancialSummary();
-      }
-    }
 
     async function loadOverview() {
       try {
@@ -741,48 +1022,98 @@
           actTbody.appendChild(tr);
         });
 
-        // Render Directivos Table
+        // Render Usuarios y Roles Table (Todos los usuarios con acciones y estados)
         const dirTbody = document.getElementById('directivos-tbody');
         dirTbody.innerHTML = '';
-        overviewData.directivos.forEach(d => {
+        (overviewData.users || overviewData.directivos).forEach(u => {
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-800/40 transition";
-          const isAct = d.status === 'ACTIVO';
+          const isAct = u.status === 'ACTIVO';
+
+          // Badges for all 5 roles
+          const roles = u.roles || [u.role];
+          let badgesHtml = '';
+          if (roles.includes('SUPER_ADMIN')) {
+            badgesHtml += `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 mr-1 mb-1"><i class="fa-solid fa-crown text-[9px]"></i> SUPER_ADMIN</span>`;
+          }
+          if (roles.includes('DIRECTIVO')) {
+            badgesHtml += `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mr-1 mb-1"><i class="fa-solid fa-user-tie text-[9px]"></i> DIRECTIVO</span>`;
+          }
+          if (roles.includes('PROFESOR')) {
+            badgesHtml += `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mr-1 mb-1"><i class="fa-solid fa-chalkboard-user text-[9px]"></i> PROFESOR</span>`;
+          }
+          if (roles.includes('PADRE')) {
+            badgesHtml += `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 mr-1 mb-1"><i class="fa-solid fa-users text-[9px]"></i> PADRE</span>`;
+          }
+          if (roles.includes('ALUMNO')) {
+            badgesHtml += `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30 mr-1 mb-1"><i class="fa-solid fa-user-graduate text-[9px]"></i> ALUMNO</span>`;
+          }
+
+          const courseText = u.grade_name ? `${u.grade_name} (${u.school_name})` : '<span class="text-slate-500">-</span>';
+
           tr.innerHTML = `
-            <td class="py-3 px-3 font-semibold text-white">${d.name}</td>
-            <td class="py-3 px-3 text-slate-300">${d.school_name || '-'}</td>
-            <td class="py-3 px-3 text-emerald-400 font-medium">${d.grade_name || '<span class="text-slate-500">Sin curso</span>'}</td>
-            <td class="py-3 px-3 font-mono text-xs text-slate-300">${d.email}</td>
-            <td class="py-3 px-3 text-center font-mono text-cyan-400 font-semibold">${d.activities_count}</td>
+            <td class="py-3 px-3 font-semibold text-white">${u.name}</td>
+            <td class="py-3 px-3 font-mono text-xs text-slate-300">${u.email}</td>
+            <td class="py-3 px-3 font-mono text-xs text-emerald-400">${u.phone || '-'}</td>
+            <td class="py-3 px-3 text-center flex flex-wrap justify-center">${badgesHtml}</td>
+            <td class="py-3 px-3 text-slate-300 text-[11px]">${courseText}</td>
             <td class="py-3 px-3 text-center">
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isAct ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
-                ${d.status}
+                ${u.status}
               </span>
             </td>
             <td class="py-3 px-3 text-center">
-              <button onclick="toggleUserStatus(${d.id})" class="text-xs ${isAct ? 'text-amber-400 hover:text-amber-300' : 'text-emerald-400 hover:text-emerald-300'} font-semibold p-1">
-                ${isAct ? '<i class="fa-solid fa-pause"></i> Pausar' : '<i class="fa-solid fa-play"></i> Reactivar'}
-              </button>
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="openEditUserModal(${u.id})" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700 text-[11px] font-semibold transition" title="Editar usuario">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button onclick="toggleUserStatus(${u.id})" class="px-2 py-1 rounded-lg ${isAct ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'} text-[11px] font-semibold transition" title="${isAct ? 'Pausar usuario' : 'Activar usuario'}">
+                  ${isAct ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>'}
+                </button>
+                <button onclick="handleDeleteUser(${u.id}, '${u.name.replace(/'/g, "\\'")}')" class="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[11px] font-semibold transition" title="Eliminar usuario">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </td>
           `;
           dirTbody.appendChild(tr);
         });
 
-        // Render Courses Table
+        // Render Courses Table (Con Edición, Pausa y Eliminación)
         const crsTbody = document.getElementById('courses-tbody');
         crsTbody.innerHTML = '';
         overviewData.courses.forEach(c => {
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-800/40 transition";
+          const isAct = (c.status || 'ACTIVO') === 'ACTIVO';
+
           tr.innerHTML = `
             <td class="py-3 px-3 font-bold text-white">${c.school_name}</td>
             <td class="py-3 px-3 font-semibold text-slate-200">${c.grade_name}</td>
             <td class="py-3 px-3 text-slate-400">${c.president_name || '<span class="text-amber-400/80 italic">Pendiente de asignar</span>'}</td>
             <td class="py-3 px-3 text-center font-mono">${c.student_count}</td>
             <td class="py-3 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isAct ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
+                ${c.status || 'ACTIVO'}
+              </span>
+            </td>
+            <td class="py-3 px-3 text-center">
               <button onclick="openRosterForCourse(${c.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 px-2 py-1 rounded-lg transition">
                 <i class="fa-solid fa-users mr-1"></i> Ver/Editar
               </button>
+            </td>
+            <td class="py-3 px-3 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="openEditCourseModal(${c.id}, ${c.school_id}, '${c.school_name.replace(/'/g, "\\'")}', '${c.grade_name.replace(/'/g, "\\'")}', ${c.user_id || 'null'})" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-[11px] font-semibold transition" title="Editar colegio / curso">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button onclick="toggleCourseStatus(${c.id})" class="px-2 py-1 rounded-lg ${isAct ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'} text-[11px] font-semibold transition" title="${isAct ? 'Pausar curso' : 'Activar curso'}">
+                  ${isAct ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>'}
+                </button>
+                <button onclick="handleDeleteCourse(${c.id}, '${c.grade_name.replace(/'/g, "\\'")}')" class="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[11px] font-semibold transition" title="Eliminar curso">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </td>
             <td class="py-3 px-3 text-right">
               <a href="/?slug=${c.slug}" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 px-3 py-1.5 rounded-xl font-mono text-xs transition inline-flex items-center gap-1.5">
@@ -837,7 +1168,7 @@
           tr.className = "hover:bg-slate-800/40 transition";
           tr.innerHTML = `
             <td class="py-2.5 px-3 text-center text-slate-500 font-mono">${idx + 1}</td>
-            <td class="py-2.5 px-3 font-semibold text-white" id="stud-name-${s.id}">${s.full_name}</td>
+            <td class="py-2.5 px-3 font-semibold text-white"><button onclick="openStudentSummaryModal(${s.id})" class="text-left hover:text-emerald-400 underline decoration-dotted transition" title="Ver ficha y cuotas de este alumno">${s.full_name}</button></td>
             <td class="py-2.5 px-3 text-right space-x-1.5">
               <button onclick="handleEditStudent(${s.id}, '${s.full_name}')" class="text-xs text-amber-400 hover:text-amber-300 p-1">
                 <i class="fa-solid fa-pen"></i>
@@ -1210,9 +1541,10 @@ Link público generado: /?slug=${data.slug}`);
 
     function populateCourseSelectForUsers() {
       const sel = document.getElementById('usr-modal-course-id');
-      if (!sel || !hierarchyData) return;
+      if (!sel) return;
       sel.innerHTML = '<option value="">-- Sin curso asignado --</option>';
-      hierarchyData.courses.forEach(c => {
+      const courses = (hierarchyData && hierarchyData.courses) ? hierarchyData.courses : (overviewData ? overviewData.courses : []);
+      courses.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.id;
         opt.innerText = `${c.school_name} - ${c.grade_name}`;
@@ -1234,14 +1566,22 @@ Link público generado: /?slug=${data.slug}`);
 
       document.getElementById('chk-role-superadmin').checked = false;
       document.getElementById('chk-role-directivo').checked = true;
+      document.getElementById('chk-role-profesor').checked = false;
       document.getElementById('chk-role-padre').checked = false;
+      document.getElementById('chk-role-alumno').checked = false;
       document.getElementById('usr-modal-error').classList.add('hidden');
 
       document.getElementById('modal-user-crud').classList.remove('hidden');
     }
 
     function openEditUserModal(id) {
-      const u = systemUsersList.find(x => x.id === id);
+      let u = null;
+      if (typeof systemUsersList !== 'undefined' && Array.isArray(systemUsersList)) {
+        u = systemUsersList.find(x => x.id === id);
+      }
+      if (!u && overviewData && overviewData.users) {
+        u = overviewData.users.find(x => x.id === id);
+      }
       if (!u) return;
 
       populateCourseSelectForUsers();
@@ -1258,7 +1598,9 @@ Link público generado: /?slug=${data.slug}`);
       const roles = u.roles || [u.role];
       document.getElementById('chk-role-superadmin').checked = roles.includes('SUPER_ADMIN');
       document.getElementById('chk-role-directivo').checked = roles.includes('DIRECTIVO');
+      document.getElementById('chk-role-profesor').checked = roles.includes('PROFESOR');
       document.getElementById('chk-role-padre').checked = roles.includes('PADRE');
+      document.getElementById('chk-role-alumno').checked = roles.includes('ALUMNO');
       document.getElementById('usr-modal-error').classList.add('hidden');
 
       document.getElementById('modal-user-crud').classList.remove('hidden');
@@ -1281,7 +1623,9 @@ Link público generado: /?slug=${data.slug}`);
       const roles = [];
       if (document.getElementById('chk-role-superadmin').checked) roles.push('SUPER_ADMIN');
       if (document.getElementById('chk-role-directivo').checked) roles.push('DIRECTIVO');
+      if (document.getElementById('chk-role-profesor').checked) roles.push('PROFESOR');
       if (document.getElementById('chk-role-padre').checked) roles.push('PADRE');
+      if (document.getElementById('chk-role-alumno').checked) roles.push('ALUMNO');
 
       if (roles.length === 0) {
         errEl.innerText = 'Debes seleccionar al menos 1 rol para el usuario.';
@@ -1316,7 +1660,7 @@ Link público generado: /?slug=${data.slug}`);
         if (data.success) {
           closeUserModal();
           await loadUsersList();
-          await loadHierarchy();
+          if (typeof loadOverview === 'function') await loadOverview();
         } else {
           errEl.innerText = data.error || 'Error al guardar usuario.';
           errEl.classList.remove('hidden');
@@ -1341,12 +1685,315 @@ Link público generado: /?slug=${data.slug}`);
         const data = await res.json();
         if (data.success) {
           await loadUsersList();
-          await loadHierarchy();
+          if (typeof loadOverview === 'function') await loadOverview();
         } else {
           alert(data.error || 'Error al eliminar usuario.');
         }
       } catch (err) {
         alert('Error de conexión.');
+      }
+    }
+
+
+    
+    let currentStudentSummaryData = null;
+
+    // SwitchTab handling 4 tabs
+    function switchTab(tab) {
+      document.getElementById('section-hierarchy').classList.toggle('hidden', tab !== 'hierarchy');
+      document.getElementById('section-summary').classList.toggle('hidden', tab !== 'summary');
+      const secUsers = document.getElementById('section-users');
+      if (secUsers) secUsers.classList.toggle('hidden', tab !== 'users');
+      const secAudit = document.getElementById('section-audit');
+      if (secAudit) secAudit.classList.toggle('hidden', tab !== 'audit');
+
+      const btnHierarchy = document.getElementById('tab-btn-hierarchy');
+      const btnSummary = document.getElementById('tab-btn-summary');
+      const btnUsers = document.getElementById('tab-btn-users');
+      const btnAudit = document.getElementById('tab-btn-audit');
+
+      [btnHierarchy, btnSummary, btnUsers, btnAudit].forEach(b => {
+        if (b) b.className = "px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition bg-slate-900 border border-slate-800 flex items-center gap-2";
+      });
+
+      if (tab === 'hierarchy') {
+        btnHierarchy.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-emerald-600 text-white flex items-center gap-2 shadow";
+      } else if (tab === 'summary') {
+        btnSummary.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-amber-600 text-white flex items-center gap-2 shadow";
+        loadFinancialSummary();
+      } else if (tab === 'users') {
+        if (btnUsers) btnUsers.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-purple-600 text-white flex items-center gap-2 shadow";
+        loadUsersList();
+      } else if (tab === 'audit') {
+        if (btnAudit) btnAudit.className = "px-4 py-2 rounded-xl text-xs font-bold transition bg-rose-600 text-white flex items-center gap-2 shadow";
+        loadAuditLogs();
+      }
+    }
+
+    // Toggle User Status (ACTIVO <-> PAUSADO) with backend endpoint
+    async function toggleUserStatus(userId) {
+      try {
+        const res = await fetch(`/api/admin/users/${userId}/status`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          await loadOverview();
+          if (typeof loadUsersList === 'function') await loadUsersList();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo cambiar el estado'));
+        }
+      } catch (e) {
+        alert("Error de conexión al cambiar estado.");
+      }
+    }
+
+    // Toggle Course Status
+    async function toggleCourseStatus(courseId) {
+      try {
+        const res = await fetch(`/api/admin/courses/${courseId}/status`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) loadOverview();
+        else alert(data.error || 'Error al cambiar estado');
+      } catch (e) {
+        alert("Error de conexión");
+      }
+    }
+
+    // Delete Course
+    async function handleDeleteCourse(courseId, gradeName) {
+      if (!confirm(`¿Estás seguro de eliminar el curso "${gradeName}"? Esta acción se registrará en el historial de auditoría.`)) return;
+      try {
+        const res = await fetch(`/api/admin/courses/${courseId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(data.message);
+          loadOverview();
+        } else {
+          alert("Error: " + (data.error || 'No se pudo eliminar el curso'));
+        }
+      } catch (e) {
+        alert("Error de conexión");
+      }
+    }
+
+    // Edit Course Modal
+    function openEditCourseModal(courseId, schoolId, schoolName, gradeName, userId) {
+      document.getElementById('edit-course-id').value = courseId;
+      document.getElementById('edit-school-id').value = schoolId;
+      document.getElementById('edit-school-name').value = schoolName;
+      document.getElementById('edit-course-grade').value = gradeName;
+
+      const userSel = document.getElementById('edit-course-user-id');
+      userSel.innerHTML = '<option value="">-- Sin directivo --</option>';
+      const dirList = (overviewData && overviewData.directivos && overviewData.directivos.length) ? overviewData.directivos : (overviewData ? (overviewData.users || []) : []);
+      dirList.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.innerText = `${d.name} (${d.email})`;
+        userSel.appendChild(opt);
+      });
+      userSel.value = userId || '';
+      document.getElementById('modal-edit-course').classList.remove('hidden');
+    }
+
+    function closeEditCourseModal() {
+      document.getElementById('modal-edit-course').classList.add('hidden');
+    }
+
+    async function handleSaveEditCourse(e) {
+      e.preventDefault();
+      const courseId = document.getElementById('edit-course-id').value;
+      const schoolId = document.getElementById('edit-school-id').value;
+      const schoolName = document.getElementById('edit-school-name').value.trim();
+      const gradeName = document.getElementById('edit-course-grade').value.trim();
+      const userId = document.getElementById('edit-course-user-id').value || null;
+
+      try {
+        // Update School Name
+        await fetch(`/api/admin/schools/${schoolId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ name: schoolName })
+        });
+
+        // Update Course
+        const res = await fetch(`/api/admin/courses/${courseId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ grade_name: gradeName, school_id: schoolId, user_id: userId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeEditCourseModal();
+          loadOverview();
+        } else {
+          alert(data.error || 'Error al actualizar');
+        }
+      } catch (err) {
+        alert("Error de conexión");
+      }
+    }
+
+    // Share individual activity via WhatsApp
+    function shareActivityWhatsApp(actTitle, gradeName, schoolName, amountBob, deadline, bankName, accNum, holder) {
+      const msg = `📢 *CUOTA ESCOLAR OFICIAL*\n` +
+        `🏫 *Colegio:* ${schoolName} - *Curso:* ${gradeName}\n` +
+        `🎯 *Actividad:* ${actTitle}\n` +
+        `💰 *Monto por Alumno:* ${amountBob} Bs.\n` +
+        `📅 *Fecha Límite:* ${deadline}\n\n` +
+        `💳 *DATOS PARA TRANSFERENCIA / QR:*\n` +
+        `🏦 *Banco:* ${bankName}\n` +
+        `🔢 *N° Cuenta:* ${accNum}\n` +
+        `👤 *Titular:* ${holder}\n\n` +
+        `📲 *Paga y consulta el estado de tu cuota aquí:*\n` +
+        `${window.location.origin}`;
+
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // Delete Activity
+    async function handleDeleteActivity(actId, title) {
+      if (!confirm(`¿Estás seguro de eliminar la cuota "${title}"? Se guardará un respaldo de sus datos en el historial de auditoría.`)) return;
+      try {
+        const res = await fetch(`/api/directivo/activities/${actId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(data.message);
+          loadOverview();
+        } else {
+          alert(data.error || 'No se pudo eliminar la actividad');
+        }
+      } catch (e) {
+        alert("Error de conexión");
+      }
+    }
+
+    // Open Student Summary Modal
+    async function openStudentSummaryModal(studentId) {
+      try {
+        const res = await fetch(`/api/students/${studentId}/financial-summary`);
+        currentStudentSummaryData = await res.json();
+
+        const st = currentStudentSummaryData.student;
+        document.getElementById('m-stud-name').innerText = st.full_name;
+        document.getElementById('m-stud-course').innerText = `${st.school_name} • ${st.grade_name}`;
+
+        const totals = currentStudentSummaryData.totals;
+        document.getElementById('m-stud-total-req').innerText = `${totals.totalRequired} Bs.`;
+        document.getElementById('m-stud-total-paid').innerText = `${totals.totalPaid} Bs.`;
+        document.getElementById('m-stud-total-pending').innerText = `${totals.totalPending} Bs.`;
+
+        const tbody = document.getElementById('m-stud-breakdown-tbody');
+        tbody.innerHTML = '';
+        currentStudentSummaryData.breakdown.forEach(b => {
+          const tr = document.createElement('tr');
+          const isPaid = b.status === 'PAGADO';
+          const badge = isPaid
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">AL DÍA</span>'
+            : (b.status === 'PARCIAL'
+                ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300">PARCIAL (${b.amount_paid} Bs.)</span>`
+                : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">PENDIENTE</span>');
+
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-semibold text-white">${b.title}</td>
+            <td class="py-2.5 px-3 text-center font-mono text-amber-400">${b.amount_bob} Bs.</td>
+            <td class="py-2.5 px-3 text-center">${badge}</td>
+            <td class="py-2.5 px-3 text-right font-bold ${isPaid ? 'text-emerald-400' : 'text-slate-400'}">${b.amount_paid} Bs.</td>
+            <td class="py-2.5 px-3 text-right font-mono text-[11px] text-slate-400">${b.paid_at || '-'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById('modal-student-summary').classList.remove('hidden');
+      } catch (err) {
+        alert("No se pudo cargar la ficha del alumno.");
+      }
+    }
+
+    function closeStudentSummaryModal() {
+      document.getElementById('modal-student-summary').classList.add('hidden');
+    }
+
+    function shareStudentSummaryWhatsApp() {
+      if (!currentStudentSummaryData) return;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(currentStudentSummaryData.whatsappText)}`, '_blank');
+    }
+
+    let currentAuditLogs = [];
+
+    function viewAuditDetail(logId) {
+      const log = currentAuditLogs.find(x => x.id === logId);
+      if (!log) return;
+      alert(`📋 DETALLE Y RESPALDO AUDITORÍA\n\nAcción: ${log.action}\nElemento: ${log.entity_type} - ${log.entity_name}\nRealizado por: ${log.user_name}\nFecha: ${log.created_at}\n\nRespaldo de datos:\n` + JSON.stringify(log.details, null, 2));
+    }
+
+    // Load Audit Logs (Historial)
+    async function loadAuditLogs() {
+      const act = document.getElementById('audit-filter-action')?.value || '';
+      const type = document.getElementById('audit-filter-type')?.value || '';
+      const tbody = document.getElementById('audit-tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-500">Cargando historial de auditoría...</td></tr>';
+
+      try {
+        const query = `?action=${act}&entity_type=${type}`;
+        const res = await fetch(`/api/admin/audit-logs${query}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const logs = await res.json();
+        currentAuditLogs = Array.isArray(logs) ? logs : [];
+
+        tbody.innerHTML = '';
+        if (currentAuditLogs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-500">No hay registros de auditoría aún.</td></tr>';
+          return;
+        }
+
+        currentAuditLogs.forEach(l => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-800/40 transition";
+
+          let actBadge = '';
+          if (l.action === 'ELIMINAR') {
+            actBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">🗑️ ELIMINADO</span>';
+          } else if (l.action === 'EDITAR') {
+            actBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">✏️ EDITADO</span>';
+          } else if (l.action === 'PAUSAR') {
+            actBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">⏸️ PAUSADO</span>';
+          } else if (l.action === 'ACTIVAR') {
+            actBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">▶️ ACTIVADO</span>';
+          } else {
+            actBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300">${l.action}</span>`;
+          }
+
+          tr.innerHTML = `
+            <td class="py-3 px-3 text-slate-400 font-mono text-[11px]">${l.created_at.replace('T', ' ').substring(0, 19)}</td>
+            <td class="py-3 px-3 text-center">${actBadge}</td>
+            <td class="py-3 px-3 font-semibold text-white">${l.entity_type}</td>
+            <td class="py-3 px-3 text-slate-200 font-medium">${l.entity_name}</td>
+            <td class="py-3 px-3 text-slate-300">${l.user_name}</td>
+            <td class="py-3 px-3 text-center">
+              <button onclick="viewAuditDetail(${l.id})" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 font-semibold transition">
+                🔍 Ver Respaldo
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-rose-400">Error al cargar registros de auditoría.</td></tr>';
       }
     }
 
